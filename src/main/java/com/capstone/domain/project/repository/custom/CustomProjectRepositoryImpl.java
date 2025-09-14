@@ -1,15 +1,15 @@
 package com.capstone.domain.project.repository.custom;
 
-import com.capstone.domain.project.dto.request.ProjectAuthorityRequest;
+
 import com.capstone.domain.project.entity.Project;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
-import org.springframework.data.mongodb.core.query.Update;
+
 import org.springframework.stereotype.Repository;
-import org.springframework.transaction.annotation.Transactional;
+
 
 import java.util.*;
 
