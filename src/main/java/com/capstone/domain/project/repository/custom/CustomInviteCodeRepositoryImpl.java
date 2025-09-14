@@ -18,7 +18,7 @@ public class CustomInviteCodeRepositoryImpl implements CustomInviteCodeRepositor
 
     @Override
     public Optional<InviteCode> findByCredentialCode(String credentialCode) {
-        Query query = new Query(Criteria.where("credentialCode").is(credentialCode));
+        Query query = new Query(Criteria.where("code").is(credentialCode));
         return Optional.ofNullable(mongoTemplate.findOne(query, InviteCode.class));
     }
 }
