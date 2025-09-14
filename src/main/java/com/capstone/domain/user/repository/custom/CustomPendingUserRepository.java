@@ -7,5 +7,4 @@ import java.util.Optional;
 public interface CustomPendingUserRepository {
     Optional<PendingUser> findByCredentialCode(String credentialCode);
     Optional<PendingUser> findByProjectAndUser(String projectId, String userId);
-    String findProjectByCode(String credentialCode);
 }

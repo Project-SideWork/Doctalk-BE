@@ -32,12 +32,4 @@ public class CustomPendingUserRepositoryImpl implements CustomPendingUserReposit
         return Optional.ofNullable(mongoTemplate.findOne(query, PendingUser.class));
     }
 
-    @Override
-    public String findProjectByCode(String credentialCode) {
-
-        Query query = new Query().addCriteria(Criteria.where("credentialCode").is(credentialCode));
-        query.fields().include("projectId");
-
-        return mongoTemplate.findOne(query, String.class);
-    }
 }
