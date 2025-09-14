@@ -23,13 +23,13 @@ public class InviteCode extends BaseDocument {
     private String projectId;
 
     @Indexed(expireAfterSeconds = 0)
-    private Date expireAt;
+    private Date expiresAt;
 
-    public static InviteCode of(String uuid, String projectId, long ttlSec){
+    public static InviteCode of(String uuid, String projectId){
         return InviteCode.builder()
                 .code(uuid)
                 .projectId(projectId)
-                .expireAt(new Date(System.currentTimeMillis() + ttlSec * 1000))
+                .expiresAt(new Date(System.currentTimeMillis() + 600 * 1000))
                 .build();
     }
 }

@@ -19,8 +19,8 @@ public class CustomPendingUserRepositoryImpl implements CustomPendingUserReposit
     private final MongoTemplate mongoTemplate;
 
     @Override
-    public Optional<PendingUser> findByCredentialCode(InviteCode inviteCode) {
-        Query query = new Query().addCriteria(Criteria.where("inviteCode").is(inviteCode));
+    public Optional<PendingUser> findByCredentialCode(String inviteCode) {
+        Query query = new Query().addCriteria(Criteria.where("inviteCode.code").is(inviteCode));
 
         return Optional.ofNullable(mongoTemplate.findOne(query, PendingUser.class));
     }

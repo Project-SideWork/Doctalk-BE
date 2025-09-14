@@ -81,7 +81,7 @@ public class ProjectUserService {
         }
 
         InviteCode inviteCode = inviteCodeOpt.get();
-        Optional<PendingUser> pendingUserOpt = pendingUserRepository.findByCredentialCode(inviteCode);
+        Optional<PendingUser> pendingUserOpt = pendingUserRepository.findByCredentialCode(inviteCode.getCode());
 
         if (pendingUserOpt.isPresent()) {
             PendingUser pendingUser = pendingUserOpt.get();
