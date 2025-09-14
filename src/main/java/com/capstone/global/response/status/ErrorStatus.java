@@ -43,7 +43,10 @@ public enum ErrorStatus implements BaseErrorCode {
     // Task
     TASK_NOT_FOUND(HttpStatus.NOT_FOUND, "TASK_001", "기존에 없던 작업 입니다."),
     VERSION_NOT_FOUND(HttpStatus.NOT_FOUND, "TASK_002", "기존에 없던 버전 입니다."),
-    INVALID_STATUS(HttpStatus.BAD_REQUEST, "TASK_003", "유효하지 않은 작업 상태 값입니다.")
+    INVALID_STATUS(HttpStatus.BAD_REQUEST, "TASK_003", "유효하지 않은 작업 상태 값입니다."),
+
+    //Invite Code
+    CODE_NOT_FOUND(HttpStatus.NOT_FOUND, "INVITE_CODE_001", "이미 만료되었거나 존재하지 않는 초대코드 입니다."),
     ;
 
     private final HttpStatus httpStatus;

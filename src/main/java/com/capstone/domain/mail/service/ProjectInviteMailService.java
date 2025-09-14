@@ -1,10 +1,10 @@
 package com.capstone.domain.mail.service;
 
-import com.capstone.domain.project.entity.Project;
+import com.capstone.domain.project.entity.InviteCode;
+import com.capstone.domain.project.repository.InviteCodeRepository;
 import com.capstone.domain.user.entity.PendingUser;
 import com.capstone.domain.user.entity.User;
 import com.capstone.domain.user.exception.UserNotFoundException;
-import com.capstone.domain.user.message.UserMessages;
 import com.capstone.domain.user.repository.PendingUserRepository;
 import com.capstone.domain.user.repository.UserRepository;
 import jakarta.mail.MessagingException;
@@ -26,6 +26,7 @@ public class ProjectInviteMailService {
     private final JavaMailSender javaMailSender;
     private final PendingUserRepository pendingUserRepository;
     private final UserRepository userRepository;
+    private final InviteCodeRepository inviteCodeRepository;
     private String ePw;
 
     @Value("${spring.mail.username}")
@@ -41,14 +42,16 @@ public class ProjectInviteMailService {
         Optional<User> user = userRepository.findUserByEmail(invitee);
 
         if(user.isPresent()){
+            InviteCode inviteCode = InviteCode.of(userCredentialCode.toString(), projectId);
+
             User userExist = user.get();
             PendingUser pendingUser = PendingUser.builder()
-                    .projectId(projectId)
                     .userId(userExist.getId())
-                    .credentialCode(userCredentialCode.toString())
+                    .inviteCode(inviteCode)
                     .email(invitee)
                     .build();
 
+            inviteCodeRepository.save(inviteCode);
             pendingUserRepository.save(pendingUser);
         } else {
             throw new UserNotFoundException();
@@ -65,7 +68,7 @@ public class ProjectInviteMailService {
               <strong style="color: #2c3e50;">%s</strong> 님이 당신을 <strong style="color: #3498db;">%s</strong> 프로젝트에 초대했습니다.
             </p>
             <p style="font-size: 15px; color: #666666;">
-              아래 버튼을 눌러 프로젝트에 참여하세요.
+              아래 버튼을 눌러 프로젝트에 참여하세요. 본 초대 메일의 유효 시간은 10분입니다.
             </p>
             <div style="text-align: center; margin: 30px 0;">
               <a href="%s" style="background-color: #3498db; color: #ffffff; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold;">

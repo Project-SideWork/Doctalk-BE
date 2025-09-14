@@ -3,12 +3,14 @@ package com.capstone.domain.user.service;
 import com.capstone.domain.project.dto.request.ProjectAuthorityRequest;
 import com.capstone.domain.project.dto.request.ProjectInviteRequest;
 import com.capstone.domain.project.dto.response.InviteCheckResult;
+import com.capstone.domain.project.entity.InviteCode;
 import com.capstone.domain.project.entity.Project;
+import com.capstone.domain.project.exception.InvalidInviteCodeException;
+import com.capstone.domain.project.repository.InviteCodeRepository;
 import com.capstone.domain.project.repository.ProjectRepository;
 import com.capstone.domain.user.entity.PendingUser;
 import com.capstone.domain.user.entity.ProjectUser;
 import com.capstone.domain.user.entity.User;
-import com.capstone.domain.user.exception.ProjectUserFoundException;
 import com.capstone.domain.user.exception.UserFoundException;
 import com.capstone.domain.user.exception.UserNotFoundException;
 import com.capstone.domain.user.message.UserMessages;
@@ -39,6 +41,7 @@ public class ProjectUserService {
     private final ProjectRepository projectRepository;
     private final PendingUserRepository pendingUserRepository;
     private final UserRepository userRepository;
+    private final InviteCodeRepository inviteCodeRepository;
 
     private final KafkaProducerService kafkaProducerService;
 
@@ -70,18 +73,34 @@ public class ProjectUserService {
     }
 
     @Transactional
-    public void insertProjectUser(String credentialCode){
-        PendingUser pendingUser = pendingUserRepository.findByCredentialCode(credentialCode);
-        ProjectUser projectUser = ProjectUser.builder()
-                .projectId(pendingUser.getProjectId())
-                .userId(pendingUser.getEmail())
-                .role("ROLE_MEMBER")
-                .joinedAt(LocalTime.now().toString())
-                .build();
+    public String processInviteAcceptProjectUser(String credentialCode){
+        Optional<InviteCode> inviteCodeOpt = inviteCodeRepository.findByCredentialCode(credentialCode);
 
-        projectUserRepository.save(projectUser);
-        pendingUserRepository.delete(pendingUser);
+        if(inviteCodeOpt.isEmpty()){
+            throw new InvalidInviteCodeException();
+        }
 
+        InviteCode inviteCode = inviteCodeOpt.get();
+        Optional<PendingUser> pendingUserOpt = pendingUserRepository.findByCredentialCode(inviteCode.getCode());
+
+        if (pendingUserOpt.isPresent()) {
+            PendingUser pendingUser = pendingUserOpt.get();
+            ProjectUser projectUser = ProjectUser.builder()
+                    .projectId(inviteCode.getProjectId())
+                    .userId(pendingUser.getEmail())
+                    .role("ROLE_MEMBER")
+                    .joinedAt(LocalTime.now().toString())
+                    .build();
+
+            projectUserRepository.save(projectUser);
+            pendingUserRepository.delete(pendingUser);
+
+        }
+        return generateRedirectionUri(inviteCode.getProjectId());
+    }
+
+    private String generateRedirectionUri(String projectId){
+        return "https://docktalk.co.kr/project/workboard/" + projectId;
     }
 
 

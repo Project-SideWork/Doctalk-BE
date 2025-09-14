@@ -1,5 +1,6 @@
 package com.capstone.domain.user.repository.custom;
 
+import com.capstone.domain.project.entity.InviteCode;
 import com.capstone.domain.user.entity.PendingUser;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.mongodb.core.MongoTemplate;
@@ -18,10 +19,10 @@ public class CustomPendingUserRepositoryImpl implements CustomPendingUserReposit
     private final MongoTemplate mongoTemplate;
 
     @Override
-    public PendingUser findByCredentialCode(String credentialCode) {
-        Query query = new Query().addCriteria(Criteria.where("credentialCode").is(credentialCode));
+    public Optional<PendingUser> findByCredentialCode(String inviteCode) {
+        Query query = new Query().addCriteria(Criteria.where("inviteCode.code").is(inviteCode));
 
-        return mongoTemplate.findOne(query, PendingUser.class);
+        return Optional.ofNullable(mongoTemplate.findOne(query, PendingUser.class));
     }
 
     @Override
@@ -31,4 +32,5 @@ public class CustomPendingUserRepositoryImpl implements CustomPendingUserReposit
 
         return Optional.ofNullable(mongoTemplate.findOne(query, PendingUser.class));
     }
+
 }
