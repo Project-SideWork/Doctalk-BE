@@ -5,6 +5,7 @@ import com.capstone.domain.user.entity.PendingUser;
 import java.util.Optional;
 
 public interface CustomPendingUserRepository {
-    PendingUser findByCredentialCode(String credentialCode);
+    Optional<PendingUser> findByCredentialCode(String credentialCode);
     Optional<PendingUser> findByProjectAndUser(String projectId, String userId);
+    String findProjectByCode(String credentialCode);
 }

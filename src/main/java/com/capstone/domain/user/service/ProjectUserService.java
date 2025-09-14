@@ -71,19 +71,26 @@ public class ProjectUserService {
 
     @Transactional
     public String processInviteAcceptProjectUser(String credentialCode){
-        PendingUser pendingUser = pendingUserRepository.findByCredentialCode(credentialCode);
+        Optional<PendingUser> pendingUserOpt = pendingUserRepository.findByCredentialCode(credentialCode);
+        String projectId = pendingUserRepository.findProjectByCode(credentialCode);
 
-        ProjectUser projectUser = ProjectUser.builder()
-                .projectId(pendingUser.getProjectId())
-                .userId(pendingUser.getEmail())
-                .role("ROLE_MEMBER")
-                .joinedAt(LocalTime.now().toString())
-                .build();
+        if(pendingUserOpt.isEmpty()){
+            return generateRedirectionUri(projectId);
+        }
+        else {
+            PendingUser pendingUser = pendingUserOpt.get();
+            ProjectUser projectUser = ProjectUser.builder()
+                    .projectId(projectId)
+                    .userId(pendingUser.getEmail())
+                    .role("ROLE_MEMBER")
+                    .joinedAt(LocalTime.now().toString())
+                    .build();
 
-        projectUserRepository.save(projectUser);
-        pendingUserRepository.delete(pendingUser);
+            projectUserRepository.save(projectUser);
+            pendingUserRepository.delete(pendingUser);
 
-        return generateRedirectionUri(projectUser.getProjectId());
+            return generateRedirectionUri(projectId);
+        }
     }
 
     private String generateRedirectionUri(String projectId){

@@ -18,10 +18,10 @@ public class CustomPendingUserRepositoryImpl implements CustomPendingUserReposit
     private final MongoTemplate mongoTemplate;
 
     @Override
-    public PendingUser findByCredentialCode(String credentialCode) {
+    public Optional<PendingUser> findByCredentialCode(String credentialCode) {
         Query query = new Query().addCriteria(Criteria.where("credentialCode").is(credentialCode));
 
-        return mongoTemplate.findOne(query, PendingUser.class);
+        return Optional.ofNullable(mongoTemplate.findOne(query, PendingUser.class));
     }
 
     @Override
@@ -30,5 +30,14 @@ public class CustomPendingUserRepositoryImpl implements CustomPendingUserReposit
                 .and("userId").is(userId));
 
         return Optional.ofNullable(mongoTemplate.findOne(query, PendingUser.class));
+    }
+
+    @Override
+    public String findProjectByCode(String credentialCode) {
+
+        Query query = new Query().addCriteria(Criteria.where("credentialCode").is(credentialCode));
+        query.fields().include("projectId");
+
+        return mongoTemplate.findOne(query, String.class);
     }
 }
