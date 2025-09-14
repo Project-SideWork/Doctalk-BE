@@ -22,14 +22,14 @@ public class InviteCode extends BaseDocument {
     private String code;
     private String projectId;
 
-    @Indexed(expireAfterSeconds = 6000)
-    private Date expiresAt;
+    @Indexed(expireAfterSeconds = 0)
+    private Date expireAt;
 
-    public static InviteCode of(String uuid, String projectId){
+    public static InviteCode of(String uuid, String projectId, long ttlSec){
         return InviteCode.builder()
                 .code(uuid)
                 .projectId(projectId)
-                .expiresAt(new Date())
+                .expireAt(new Date(System.currentTimeMillis() + ttlSec * 1000))
                 .build();
     }
 }
