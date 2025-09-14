@@ -1,5 +1,6 @@
 package com.capstone.domain.user.entity;
 
+import com.capstone.domain.project.entity.InviteCode;
 import com.capstone.global.entity.BaseDocument;
 import jakarta.persistence.Id;
 import lombok.*;
@@ -12,12 +13,9 @@ import org.springframework.data.mongodb.core.mapping.Document;
 @NoArgsConstructor
 @AllArgsConstructor
 public class PendingUser extends BaseDocument {
-
     @Id
     private String id;
     private String userId;
-    private String projectId;
-    private String credentialCode;
-
     private String email;
+    private InviteCode inviteCode;
 }
