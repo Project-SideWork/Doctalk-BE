@@ -70,8 +70,9 @@ public class ProjectUserService {
     }
 
     @Transactional
-    public void insertProjectUser(String credentialCode){
+    public String processInviteAcceptProjectUser(String credentialCode){
         PendingUser pendingUser = pendingUserRepository.findByCredentialCode(credentialCode);
+
         ProjectUser projectUser = ProjectUser.builder()
                 .projectId(pendingUser.getProjectId())
                 .userId(pendingUser.getEmail())
@@ -82,6 +83,11 @@ public class ProjectUserService {
         projectUserRepository.save(projectUser);
         pendingUserRepository.delete(pendingUser);
 
+        return generateRedirectionUri(projectUser.getProjectId());
+    }
+
+    private String generateRedirectionUri(String projectId){
+        return "https://docktalk.co.kr/project/workboard/" + projectId;
     }
 
 

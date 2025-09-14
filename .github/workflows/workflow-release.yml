@@ -2,7 +2,7 @@ name: CI / CD
 
 on:
   push:
-    branches: [main]
+    branches: [feat/#152-invite-redirection-url]
 
 jobs:
   CI:

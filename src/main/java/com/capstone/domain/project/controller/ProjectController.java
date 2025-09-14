@@ -91,11 +91,8 @@ public class ProjectController implements ProjectControllerDocs {
 
     @GetMapping("/invite/accept")
     public ResponseEntity<Object> acceptInvitation(@RequestParam String credentialCode){
-        projectUserService.insertProjectUser(credentialCode);
-
-        // TODO: 프론트 배포 후 해당 주소로 변경
-        URI redirectUri = URI.create("https://www.naver.com");
-        return ResponseEntity.status(HttpStatus.FOUND).location(redirectUri).build();
+        String redirectUri = projectUserService.processInviteAcceptProjectUser(credentialCode);
+        return ResponseEntity.status(HttpStatus.FOUND).location(URI.create(redirectUri)).build();
     }
 
     @GetMapping("/load")
