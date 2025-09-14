@@ -1,5 +1,6 @@
 package com.capstone.domain.project.entity;
 
+import com.capstone.global.entity.BaseDocument;
 import jakarta.persistence.Id;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -15,7 +16,7 @@ import java.util.Date;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class InviteCode {
+public class InviteCode extends BaseDocument {
     @Id
     private String id;
     private String code;
