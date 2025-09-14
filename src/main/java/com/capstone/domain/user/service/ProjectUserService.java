@@ -74,7 +74,6 @@ public class ProjectUserService {
 
     @Transactional
     public String processInviteAcceptProjectUser(String credentialCode){
-        Optional<PendingUser> pendingUserOpt = pendingUserRepository.findByCredentialCode(credentialCode);
         Optional<InviteCode> inviteCodeOpt = inviteCodeRepository.findByCredentialCode(credentialCode);
 
         if(inviteCodeOpt.isEmpty()){
@@ -82,12 +81,9 @@ public class ProjectUserService {
         }
 
         InviteCode inviteCode = inviteCodeOpt.get();
+        Optional<PendingUser> pendingUserOpt = pendingUserRepository.findByCredentialCode(inviteCode);
 
-        if(pendingUserOpt.isEmpty()){
-            return generateRedirectionUri(inviteCode.getProjectId());
-        }
-
-        else {
+        if (pendingUserOpt.isPresent()) {
             PendingUser pendingUser = pendingUserOpt.get();
             ProjectUser projectUser = ProjectUser.builder()
                     .projectId(inviteCode.getProjectId())
@@ -99,8 +95,8 @@ public class ProjectUserService {
             projectUserRepository.save(projectUser);
             pendingUserRepository.delete(pendingUser);
 
-            return generateRedirectionUri(inviteCode.getProjectId());
         }
+        return generateRedirectionUri(inviteCode.getProjectId());
     }
 
     private String generateRedirectionUri(String projectId){
