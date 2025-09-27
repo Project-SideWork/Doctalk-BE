@@ -2,7 +2,7 @@ name: CI / CD
 
 on:
   push:
-    branches: [feat/#152-invite-redirection-url]
+    branches: [feat/#154-oauth-proxy]
 
 jobs:
   CI:
