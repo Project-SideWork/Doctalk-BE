@@ -11,7 +11,7 @@ public class OAuthProxyService {
     private final WebClient oAuth2Client;
 
     public void sendOAuthRequest(String provider) {
-        oAuth2Client.post()
+        oAuth2Client.get()
                 .uri(uriBuilder -> uriBuilder
                         .scheme("https")
                         .host("docktalk.co.kr")
