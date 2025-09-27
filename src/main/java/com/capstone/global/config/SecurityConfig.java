@@ -104,7 +104,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(requests -> requests
                         .requestMatchers("/oauth2/**","/register/*","/login", "/swagger-ui/**",    // Swagger UI 관련 경로
                                 "/v3/api-docs/**","/csrf-token", "/project/**", "/socket/**","/document/**", "/editing", "/notification/**",
-                                "/mypage/email/avail","/mypage/password/new","/mypage/email/check", "/project/invite/accept").permitAll()
+                                "/mypage/email/avail","/mypage/password/new","/mypage/email/check", "/project/invite/accept", "/oauth/login").permitAll()
                         .anyRequest().authenticated()
                 )
                 .oauth2Login(configure ->

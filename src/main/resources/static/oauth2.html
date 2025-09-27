@@ -1,19 +1,19 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Google OAuth2 Login</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Google OAuth2 Login</title>
 </head>
 <body>
 <h1>Login with Google</h1>
 <p>Click the button below to log in with your Google account:</p>
 
-<!-- GET 요청으로 Google 로그인 페이지로 이동 -->
-<a href="http://localhost:8080/oauth2/authorization/google?access_type=offline&mode=login&redirect_uri=http://gcpassist.com?&userId=999331911900086413&guildId=1343323552555995290">
-  <button type="button" style="padding: 10px 20px; font-size: 16px; cursor: pointer;">
-    Login with Google
-  </button>
+<!-- GET 요청을 DockTalk 서버 프록시로 보냄 -->
+<a href="https://docktalk.co.kr/api/oauth/login?provider=google">
+    <button type="button" style="padding: 10px 20px; font-size: 16px; cursor: pointer;">
+        Login with Google
+    </button>
 </a>
 
 </body>
