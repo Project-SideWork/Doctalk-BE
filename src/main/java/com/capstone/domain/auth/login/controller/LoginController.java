@@ -29,12 +29,12 @@ public class LoginController implements LoginControllerDocs {
         return ResponseEntity.ok().build();
     }
 
-    @PostMapping("/oauth/login")
+    @GetMapping("/oauth/login")
     public void redirectToProvider(
             @RequestParam String provider,
             HttpServletResponse response ) throws IOException {
         String redirectUrl = String.format(
-                "https://docktalk.co.kr/oauth2/authorization/%s?ㅇmode=login&redirect_uri=https://docktalk.co.kr",
+                "https://docktalk.co.kr/oauth2/authorization/%s?mode=login&redirect_uri=https://docktalk.co.kr",
                 provider
         );
         response.sendRedirect(redirectUrl);
