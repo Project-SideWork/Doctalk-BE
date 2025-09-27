@@ -34,7 +34,7 @@ public class LoginController implements LoginControllerDocs {
             @RequestParam String provider,
             HttpServletResponse response ) throws IOException {
         String redirectUrl = String.format(
-                "https://docktalk.co.kr/oauth2/authorization/%s?mode=login&redirect_uri=https://docktalk.co.kr",
+                "https://docktalk.co.kr/api/oauth2/authorization/%s",
                 provider
         );
         response.sendRedirect(redirectUrl);

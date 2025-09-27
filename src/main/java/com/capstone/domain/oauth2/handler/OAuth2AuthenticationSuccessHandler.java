@@ -73,15 +73,10 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
 
     protected String determineTargetUrl(HttpServletRequest request, HttpServletResponse response,
                                         Authentication authentication) {
-        Optional<String> redirectUri = CookieUtils.getCookie(request, REDIRECT_URI_PARAM_COOKIE_NAME)
-                .map(Cookie::getValue);
-        log.info("redirectUrl: {}", redirectUri);
-        String targetUrl = redirectUri.orElse(getDefaultTargetUrl());
+
+        String targetUrl = getDefaultTargetUrl();
 
         log.info("targetUrl: {}", targetUrl);
-        String mode = CookieUtils.getCookie(request, MODE_PARAM_COOKIE_NAME)
-                .map(Cookie::getValue)
-                .orElse("");
 
         OAuth2UserPrincipal principal = getOAuth2UserPrincipal(authentication);
         if (principal == null) {
@@ -90,23 +85,16 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
                     .build().toUriString();
         }
 
-        log.info("🔹 로그인 성공: mode={}, email={}", mode, principal.getUserInfo().getEmail());
 
-        if ("login".equalsIgnoreCase(mode)) {
+        String access = jwtUtil.createAccess(principal.getUserInfo().getEmail());
+        String refresh = jwtUtil.createRefresh(principal.getUserInfo().getEmail());
 
-            String access = jwtUtil.createAccess(principal.getUserInfo().getEmail());
-            String refresh = jwtUtil.createRefresh(principal.getUserInfo().getEmail());
-
-            CookieUtils.addCookie(response, "access_token", access, 3600);
-            CookieUtils.addCookie(response, "refresh_token", refresh, 86400);
-
-            return UriComponentsBuilder.fromUriString(targetUrl)
-                    .build().toUriString();
-        }
+        CookieUtils.addCookie(response, "access_token", access, 3600);
+        CookieUtils.addCookie(response, "refresh_token", refresh, 86400);
 
         return UriComponentsBuilder.fromUriString(targetUrl)
-                .queryParam("error", "Login failed")
                 .build().toUriString();
+
     }
 
     private OAuth2UserPrincipal getOAuth2UserPrincipal(Authentication authentication) {
