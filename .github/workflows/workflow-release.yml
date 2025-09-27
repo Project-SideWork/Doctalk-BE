@@ -88,6 +88,7 @@ jobs:
           username: ${{ secrets.DEPLOY_SERVER_USER }}
           key: ${{ secrets.DEPLOY_SSH_KEY }}
           source: ".env.production"
+          overwrite: true
           target: "/home/ubuntu/"
 
       - name: 서버에 SSH 접속하여 Docker 실행
