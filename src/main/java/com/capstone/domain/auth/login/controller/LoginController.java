@@ -4,10 +4,13 @@ import com.capstone.docs.LoginControllerDocs;
 import com.capstone.domain.auth.login.dto.LoginRequest;
 import com.capstone.domain.oauth2.service.OAuthProxyService;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.web.csrf.CsrfToken;
 import org.springframework.web.bind.annotation.*;
+
+import java.io.IOException;
 
 @RestController
 @RequiredArgsConstructor
@@ -27,7 +30,13 @@ public class LoginController implements LoginControllerDocs {
     }
 
     @PostMapping("/oauth/login")
-    public void oauthLogin(@RequestParam String provider){
-        oAuthProxyService.sendOAuthRequest(provider);
+    public void redirectToProvider(
+            @RequestParam String provider,
+            HttpServletResponse response ) throws IOException {
+        String redirectUrl = String.format(
+                "https://docktalk.co.kr/oauth2/authorization/%s?access_type=offline&mode=login&redirect_uri=https://docktalk.co.kr",
+                provider
+        );
+        response.sendRedirect(redirectUrl);
     }
 }
