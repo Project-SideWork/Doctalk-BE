@@ -54,6 +54,9 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
 
 
             String googleAccessToken = client.getAccessToken().getTokenValue();
+
+            response.addHeader("access", accessToken);
+            response.addHeader("refresh", refreshToken);
             CookieUtils.addCookie(response, "access_token", accessToken, 3600);
             CookieUtils.addCookie(response, "google_oauth_token", googleAccessToken, 3600);
             CookieUtils.addCookie(response, "refresh_token", refreshToken, 86400);
