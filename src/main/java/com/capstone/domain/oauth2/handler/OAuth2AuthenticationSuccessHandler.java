@@ -74,7 +74,7 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
     protected String determineTargetUrl(HttpServletRequest request, HttpServletResponse response,
                                         Authentication authentication) {
 
-        String targetUrl = getDefaultTargetUrl();
+        String targetUrl = "https://docktalk.co.kr";
 
         log.info("targetUrl: {}", targetUrl);
 
