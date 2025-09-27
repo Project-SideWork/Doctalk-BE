@@ -2,7 +2,7 @@ name: CI / CD
 
 on:
   push:
-    branches: [feat/#154-oauth-proxy]
+    branches: [main]
 
 jobs:
   CI:
