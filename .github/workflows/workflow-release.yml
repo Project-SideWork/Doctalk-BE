@@ -83,13 +83,11 @@ jobs:
       - name: 서버에 .env.production 전송
         uses: appleboy/scp-action@v0.1.4
         with:
-          debug: true
           host: ${{ secrets.DEPLOY_SERVER_HOST }}
           username: ${{ secrets.DEPLOY_SERVER_USER }}
           key: ${{ secrets.DEPLOY_SSH_KEY }}
           source: ".env.production"
-          overwrite: true
-          target: "/home/ubuntu/.env.production"
+          target: "~"
 
       - name: 서버에 SSH 접속하여 Docker 실행
         uses: appleboy/ssh-action@v0.1.5
