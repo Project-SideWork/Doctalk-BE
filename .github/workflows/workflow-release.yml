@@ -89,7 +89,7 @@ jobs:
           key: ${{ secrets.DEPLOY_SSH_KEY }}
           source: ".env.production"
           overwrite: true
-          target: "/home/ubuntu/"
+          target: "/home/ubuntu/.env.production"
 
       - name: 서버에 SSH 접속하여 Docker 실행
         uses: appleboy/ssh-action@v0.1.5
