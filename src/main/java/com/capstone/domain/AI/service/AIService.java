@@ -93,7 +93,7 @@ public class AIService
         String request= aiRequest.getRequest();
 
         String prompt = AiPromptBuilder.correctPrompt(request);
-        String response= askGemini(prompt).block();
+        String response= askChatGPT(prompt).block();
         return response;
     }
 
@@ -105,7 +105,7 @@ public class AIService
         String request= aiRequest.getRequest();
 
         String prompt = AiPromptBuilder.summarizePrompt(request);
-        String response= askGemini(prompt).block();
+        String response= askChatGPT(prompt).block();
         return response;
     }
 
@@ -176,7 +176,8 @@ public class AIService
         );
 
         return webClient.post()
-            .uri("/v1/chat/completions")
+            // ✅ 풀 URL 직접 지정
+            .uri("https://api.openai.com/v1/chat/completions")
             .contentType(MediaType.APPLICATION_JSON)
             .header("Authorization", "Bearer " + gptApiKey)
             .bodyValue(requestBody)
