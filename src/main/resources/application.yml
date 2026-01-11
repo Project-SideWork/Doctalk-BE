@@ -6,10 +6,9 @@ spring:
     type: redis
   data:
     mongodb:
-      uri: mongodb+srv://admin:admin@cluster0.edjo3.mongodb.net/
-      database: capstone
+      mongodb://${MONGO_USERNAME}:${MONGO_PASSWORD}@${MONGO_HOSTNAME}:${MONGO_PORT}/${MONGO_DATABASE}?authSource=admin
     redis:
-      host: redis-18447.c9.us-east-1-4.ec2.redns.redis-cloud.com
+      host: ${REDIS_HOSTNAME}
       port: 18447
       username: ${REDIS_USERNAME}
       password: ${REDIS_PASSWORD}
