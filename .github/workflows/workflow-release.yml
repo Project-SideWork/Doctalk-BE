@@ -23,22 +23,18 @@ jobs:
           distribution: 'adopt'
 
       - name: Build JAR
-        working-directory: capstone
         run: |
           find . -type d -name "build" -exec rm -rf {} + || true
           ./gradlew clean bootJar -x test
 
       - name: Build Docker image
-        working-directory: capstone
         run: |
-          docker build --no-cache -t myapp:latest .
+          docker build --no-cache -t $IMAGE_NAME:$IMAGE_TAG .
 
       - name: Save Docker image
-        working-directory: capstone
-        run: docker save myapp:latest -o myapp.tar
+        run: docker save $IMAGE_NAME:$IMAGE_TAG -o myapp.tar
 
       - name: Fix permission for tar file
-        working-directory: capstone
         run: chmod 644 myapp.tar
 
 
