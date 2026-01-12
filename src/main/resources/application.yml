@@ -9,7 +9,7 @@ spring:
       mongodb://${MONGO_USERNAME}:${MONGO_PASSWORD}@${MONGO_HOSTNAME}:${MONGO_PORT}/${MONGO_DATABASE}?authSource=admin
     redis:
       host: ${REDIS_HOSTNAME}
-      port: 18447
+      port: 6379
       username: ${REDIS_USERNAME}
       password: ${REDIS_PASSWORD}
       timeout: 6000ms
