@@ -6,12 +6,9 @@ spring:
     type: redis
   data:
     mongodb:
-      mongodb://${MONGO_USERNAME}:${MONGO_PASSWORD}@${MONGO_HOSTNAME}:${MONGO_PORT}/${MONGO_DATABASE}?authSource=admin
+      uri: mongodb://${MONGO_USERNAME}:${MONGO_PASSWORD}@${MONGO_HOSTNAME}:${MONGO_PORT}/${MONGO_DATABASE}?authSource=admin
     redis:
-      host: ${REDIS_HOSTNAME}
-      port: 6379
-      username: ${REDIS_USERNAME}
-      password: ${REDIS_PASSWORD}
+      url: redis://admin:${REDIS_PASSWORD}@${REDIS_HOSTNAME}:6379
       timeout: 6000ms
 
   servlet:
