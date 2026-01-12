@@ -2,7 +2,7 @@ name: CI / CD
 
 on:
   push:
-    branches: [ feat/#2-nhn-deploy ]
+    branches: [ main ]
 
 jobs:
   CI:
@@ -79,7 +79,6 @@ jobs:
                   set -e
                   cd /home/ubuntu/temp
                   
-                  echo "=== Create .env.production ==="
                   cat << 'EOF' > .env.production
                   SPRING_PROFILES_ACTIVE=prod
                   GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }}
