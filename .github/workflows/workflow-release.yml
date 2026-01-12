@@ -34,15 +34,14 @@ jobs:
       - name: Save Docker image
         run: docker save $IMAGE_NAME:$IMAGE_TAG -o myapp.tar
 
-      - name: Verify artifacts before SCP
-        run: |
-          echo "=== Verify workspace files ==="
-          pwd
-          ls -lh
-          ls -lh myapp.tar
-
       - name: Fix permission for tar file
         run: chmod 644 myapp.tar
+
+      - name: Upload Docker image artifact
+        uses: actions/upload-artifact@v4
+        with:
+            name: docker-image
+            path: myapp.tar
 
   CD:
     runs-on: ubuntu-latest
@@ -51,107 +50,70 @@ jobs:
     env:
       IMAGE_NAME: doctalk
       IMAGE_TAG: ${{ github.sha }}
-      AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}
-      AWS_REGION: ${{ secrets.AWS_REGION }}
 
     steps:
-      - name: .env.production 파일 생성
-        run: |
-          cat <<EOF > .env.production
-          GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }}
-          GOOGLE_CLIENT_SECRET=${{ secrets.GOOGLE_CLIENT_SECRET }}
-          IMP_API_KEY=${{ secrets.IMP_API_KEY }}
-          IMP_API_SECRET=${{ secrets.IMP_API_SECRET }}
-          KAKAO_CLIENT_ID=${{ secrets.KAKAO_CLIENT_ID }}
-          KAKAO_CLIENT_SECRET=${{ secrets.KAKAO_CLIENT_SECRET }}
-          MAIL_PASSWORD=${{ secrets.MAIL_PASSWORD }}
-          NAVER_CLIENT_ID=${{ secrets.NAVER_CLIENT_ID }}
-          NAVER_CLIENT_SECRET=${{ secrets.NAVER_CLIENT_SECRET }}
-          OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }}
-          GPT_API_KEY=${{ secrets.GPT_API_KEY }}
-          REDIS_HOSTNAME=${{ secrets.REDIS_HOSTNAME }}
-          REDIS_USERNAME=${{ secrets.REDIS_USERNAME }}
-          REDIS_PASSWORD=${{ secrets.REDIS_PASSWORD }}
-          MONGO_HOSTNAME=${{ secrets.MONGO_HOSTNAME }}
-          MONGO_USERNAME=${{ secrets.MONGO_USERNAME }}
-          MONGO_PASSWORD=${{ secrets.MONGO_PASSWORD }}
-          MONGO_PORT=${{ secrets.MONGO_PORT }}
-          MONGO_DATABASE=${{ secrets.MONGO_DATABASE }}
-          KAFKA_HOST=${{ secrets.KAFKA_HOST }}
-          SPRING_PROFILES_ACTIVE=prod
-          EOF
+      - name: Download Docker image artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: docker-image
 
-      - name: Transfer files to Bastion Host
+      - name: Verify artifact
+        run: ls -lh myapp.tar
+
+      - name: Transfer Docker image to Bastion
         uses: appleboy/scp-action@v0.1.7
         with:
             host: ${{ secrets.NHN_HOST }}
             username: ${{ secrets.NHN_USER }}
             key: ${{ secrets.NHN_SSH_KEY }}
-            port: 22
-            source: |
-              myapp.tar
-              .env.production
-            target: "/home/ubuntu/temp/"
+            source: myapp.tar
+            target: /home/ubuntu/temp/
 
       - name: Deploy on App Server via Bastion
         uses: appleboy/ssh-action@v0.1.7
         with:
-          host: ${{ secrets.NHN_HOST }}
-          username: ${{ secrets.NHN_USER }}
-          key: ${{ secrets.NHN_SSH_KEY }}
-          script: |
-            set -e
-
-            echo "=== On Bastion ==="
-            cd /home/ubuntu/temp
-            ls -lh
-
-            echo "=== Copy files to App Server ==="
-            scp myapp.tar .env.production app:/home/ubuntu/app/
-
-            echo "=== Deploying on App Server ==="
-            ssh app << 'ENDSSH'
-              set -e
-
-              cd /home/ubuntu/app
-
-              echo "=== Current directory ==="
-              pwd
-              ls -lh
-
-              IMAGE_NAME=doctalk
-              IMAGE_TAG=${{ github.sha }}
-
-              docker network create app-network 2>/dev/null || true
-
-              echo "=== Stop & remove old container ==="
-              docker stop $IMAGE_NAME 2>/dev/null || true
-              docker rm $IMAGE_NAME 2>/dev/null || true
-
-              echo "=== Load Docker image ==="
-              docker load -i myapp.tar
-
-              echo "=== Start container ==="
-              docker run -d \
-                --name $IMAGE_NAME \
-                --network app-network \
-                -p 8080:8080 \
-                --env-file .env.production \
-                -v /var/log/spring-boot:/app/logs \
-                --restart unless-stopped \
-                $IMAGE_NAME:$IMAGE_TAG
-
-              sleep 5
-
-              echo "=== Container status ==="
-              docker ps | grep $IMAGE_NAME
-
-              echo "=== Container logs ==="
-              docker logs $IMAGE_NAME --tail 50
-
-              echo "=== Cleanup app server files ==="
-              rm -f myapp.tar
-            ENDSSH
+            host: ${{ secrets.NHN_HOST }}
+            username: ${{ secrets.NHN_USER }}
+            key: ${{ secrets.NHN_SSH_KEY }}
+            script: |
+                  set -e
+                  cd /home/ubuntu/temp
+                  
+                  echo "=== Create .env.production ==="
+                  cat << 'EOF' > .env.production
+                  SPRING_PROFILES_ACTIVE=prod
+                  GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }}
+                  GOOGLE_CLIENT_SECRET=${{ secrets.GOOGLE_CLIENT_SECRET }}
+                  REDIS_HOSTNAME=${{ secrets.REDIS_HOSTNAME }}
+                  REDIS_USERNAME=${{ secrets.REDIS_USERNAME }}
+                  REDIS_PASSWORD=${{ secrets.REDIS_PASSWORD }}
+                  MONGO_HOSTNAME=${{ secrets.MONGO_HOSTNAME }}
+                  MONGO_USERNAME=${{ secrets.MONGO_USERNAME }}
+                  MONGO_PASSWORD=${{ secrets.MONGO_PASSWORD }}
+                  MONGO_PORT=${{ secrets.MONGO_PORT }}
+                  MONGO_DATABASE=${{ secrets.MONGO_DATABASE }}
+                  KAFKA_HOST=${{ secrets.KAFKA_HOST }}
+                  EOF
+                  
+                  scp myapp.tar .env.production app:/home/ubuntu/app/
+                  
+                  ssh app << 'ENDSSH'
+                    set -e
+                    cd /home/ubuntu/app
+                  
+                    docker stop doctalk 2>/dev/null || true
+                    docker rm doctalk 2>/dev/null || true
+                    docker load -i myapp.tar
+                  
+                    docker run -d \
+                      --name doctalk \
+                      -p 8080:8080 \
+                      --env-file .env.production \
+                      --restart unless-stopped \
+                      doctalk:${{ github.sha }}
+                  
+                    rm -f myapp.tar
+                  ENDSSH
 
       - name: Cleanup Bastion temp files
         if: always()
