@@ -34,6 +34,13 @@ jobs:
       - name: Save Docker image
         run: docker save $IMAGE_NAME:$IMAGE_TAG -o myapp.tar
 
+      - name: Verify artifacts before SCP
+        run: |
+          echo "=== Verify workspace files ==="
+          pwd
+          ls -lh
+          ls -lh myapp.tar
+
       - name: Fix permission for tar file
         run: chmod 644 myapp.tar
 
@@ -81,7 +88,9 @@ jobs:
             username: ${{ secrets.NHN_USER }}
             key: ${{ secrets.NHN_SSH_KEY }}
             port: 22
-            source: "myapp.tar,.env.production"
+            source: |
+              myapp.tar
+              .env.production
             target: "/home/ubuntu/temp/"
 
       - name: Deploy on App Server via Bastion
