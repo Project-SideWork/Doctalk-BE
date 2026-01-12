@@ -74,52 +74,74 @@ jobs:
           SPRING_PROFILES_ACTIVE=prod
           EOF
 
-      - name: Transfer files to NHN server
+      - name: Transfer files to Bastion Host
         uses: appleboy/scp-action@v0.1.7
         with:
-          host: ${{ secrets.NHN_HOST }}
-          username: ${{ secrets.NHN_USER }}
-          key: ${{ secrets.NHN_SSH_KEY }}
-          source: "myapp.tar,.env.production"
-          target: "/home/ubuntu/app/"
+            host: ${{ secrets.BASTION_HOST }}
+            username: ${{ secrets.BASTION_USER }}
+            key: ${{ secrets.BASTION_SSH_KEY }}
+            port: 22
+            source: "myapp.tar,.env.production"
+            target: "/home/ubuntu/temp/"
 
-      - name: Deploy on NHN server
+      - name: Deploy via Bastion to Application Server
         uses: appleboy/ssh-action@v0.1.7
         with:
-          host: ${{ secrets.NHN_HOST }}
-          username: ${{ secrets.NHN_USER }}
-          key: ${{ secrets.NHN_SSH_KEY }}
-          script: |
-                  cd /home/ubuntu/app
+                host: ${{ secrets.BASTION_HOST }}
+                username: ${{ secrets.BASTION_USER }}
+                key: ${{ secrets.BASTION_SSH_KEY }}
+                port: 22
+                script: |
+                  # Bastion에서 Application Server의 Private Key 설정 (최초 1회만)
+                  # 또는 Bastion에 이미 Private Key가 있다고 가정
                   
-                  # Docker 네트워크 생성 (없으면)
-                  docker network create --driver bridge app-network || true
+                  # Application Server로 파일 전송
+                  scp -o StrictHostKeyChecking=no \
+                    /home/ubuntu/temp/myapp.tar \
+                    /home/ubuntu/temp/.env.production \
+                    ubuntu@${{ secrets.APP_SERVER_PRIVATE_IP }}:/home/ubuntu/app/
                   
-                  # 기존 컨테이너 정지 및 삭제
-                  docker stop myapp || true
-                  docker rm myapp || true
+                  # Application Server에 SSH 접속하여 배포
+                  ssh -o StrictHostKeyChecking=no ubuntu@${{ secrets.APP_SERVER_PRIVATE_IP }} << 'ENDSSH'
+                    cd /home/ubuntu/app
                   
-                  # 기존 이미지 삭제
-                  docker rmi myapp:latest || true
+                    # Docker 네트워크 생성
+                    docker network create --driver bridge app-network || true
                   
-                  # Docker 이미지 로드
-                  docker load -i myapp.tar
+                    # 기존 컨테이너 정지 및 삭제
+                    docker stop ${{ env.IMAGE_NAME }} || true
+                    docker rm ${{ env.IMAGE_NAME }} || true
                   
-                  # Docker 컨테이너 실행
-                  docker run -d \
-                    --name myapp \
-                    --network app-network \
-                    -p 8080:8080 \
-                    --env-file /home/ubuntu/app/.env.production \
-                    -v /var/log/spring-boot:/app/logs \
-                    --restart unless-stopped \
-                    myapp:latest
+                    # 기존 이미지 삭제
+                    docker rmi ${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG }} || true
                   
-                  # 컨테이너 시작 대기
-                  sleep 5
+                    # Docker 이미지 로드
+                    docker load -i myapp.tar
                   
-                  # 헬스체크
-                  docker ps | grep myapp
+                    # Docker 컨테이너 실행
+                    docker run -d \
+                      --name ${{ env.IMAGE_NAME }} \
+                      --network app-network \
+                      -p 8080:8080 \
+                      --env-file /home/ubuntu/app/.env.production \
+                      -v /var/log/spring-boot:/app/logs \
+                      --restart unless-stopped \
+                      ${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG }}
                   
-                  # 로그 확인 (선택사항)
-                  docker logs myapp --tail 50
+                    # 컨테이너 시작 대기
+                    sleep 5
+                  
+                    # 헬스체크
+                    echo "=== Container Status ==="
+                    docker ps | grep ${{ env.IMAGE_NAME }}
+                  
+                    echo "=== Container Logs ==="
+                    docker logs ${{ env.IMAGE_NAME }} --tail 50
+                  
+                    # 정리
+                    rm -f myapp.tar
+                  ENDSSH
+                  
+                  # Bastion의 임시 파일 삭제
+                  rm -f /home/ubuntu/temp/myapp.tar
+                  rm -f /home/ubuntu/temp/.env.production
