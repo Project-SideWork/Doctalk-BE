@@ -6,13 +6,9 @@ spring:
     type: redis
   data:
     mongodb:
-      uri: mongodb+srv://admin:admin@cluster0.edjo3.mongodb.net/
-      database: capstone
+      uri: mongodb://${MONGO_USERNAME}:${MONGO_PASSWORD}@${MONGO_HOSTNAME}:${MONGO_PORT}/${MONGO_DATABASE}?authSource=admin
     redis:
-      host: redis-18447.c9.us-east-1-4.ec2.redns.redis-cloud.com
-      port: 18447
-      username: ${REDIS_USERNAME}
-      password: ${REDIS_PASSWORD}
+      url: redis://${REDIS_USERNAME}:${REDIS_PASSWORD}@${REDIS_HOSTNAME}:${REDIS_PORT}
       timeout: 6000ms
 
   servlet:
@@ -21,7 +17,7 @@ spring:
       max-request-size: 50MB
 
   kafka:
-    bootstrap-servers: kafka:9092
+    bootstrap-servers: ${KAFKA_HOST}:9092
     topics:
       task-created: task.created
       task-updated: task.updated
@@ -151,24 +147,9 @@ springdoc:
   override-with-generic-response: false
 
 
-#management:
-#  tracing:
-#    sampling:
-#      probability: 1.0
-#  observations:
-#    annotations:
-#      enabled: true
-#  zipkin:
-#    tracing:
-#      endpoint: http://localhost:9411/api/v2/spans
-#  metrics:
-#    export:
-#      prometheus:
-#        enabled: true
-#        enable-openmetrics: false
-#  endpoints:
-#    web:
-#      exposure:
-#        include: health, httpexchanges, metrics, traces, prometheus
-#
-#
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
+

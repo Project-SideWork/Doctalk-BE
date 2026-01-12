@@ -2,7 +2,7 @@ name: CI / CD
 
 on:
   push:
-    branches: [main]
+    branches: [ main ]
 
 jobs:
   CI:
@@ -22,34 +22,27 @@ jobs:
           java-version: 21
           distribution: 'adopt'
 
-      - name: Grant execute permission for gradlew
-        run: chmod +x gradlew
+      - name: Build JAR
+        run: |
+          find . -type d -name "build" -exec rm -rf {} + || true
+          ./gradlew clean bootJar -x test
 
-      - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v4
+      - name: Build Docker image
+        run: |
+          docker build --no-cache -t $IMAGE_NAME:$IMAGE_TAG .
 
-      - name: Build with Gradle (Skip Test)
-        run: ./gradlew build --exclude-task test
+      - name: Save Docker image
+        run: docker save $IMAGE_NAME:$IMAGE_TAG -o myapp.tar
 
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v2
+      - name: Fix permission for tar file
+        run: chmod 644 myapp.tar
+
+      - name: Upload Docker image artifact
+        uses: actions/upload-artifact@v4
         with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ secrets.AWS_REGION }}
+            name: docker-image
+            path: myapp.tar
 
-      - name: Login to Amazon ECR
-        id: login-ecr
-        run: |
-          aws ecr get-login-password --region ${{ secrets.AWS_REGION }} | \
-          docker login --username AWS \
-            --password-stdin ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com
-
-      - name: Build and Push Docker Image to ECR
-        run: |
-          IMAGE_URI=${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/doctalk:${{ env.IMAGE_TAG }}
-          docker build --build-arg SPRING_PROFILE=prod -t $IMAGE_URI .
-          docker push $IMAGE_URI
   CD:
     runs-on: ubuntu-latest
     needs: CI
@@ -57,85 +50,87 @@ jobs:
     env:
       IMAGE_NAME: doctalk
       IMAGE_TAG: ${{ github.sha }}
-      AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}
-      AWS_REGION: ${{ secrets.AWS_REGION }}
 
     steps:
-      - name: .env.production 파일 생성
-        run: |
-          cat <<EOF > .env.production
-          GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }}
-          GOOGLE_CLIENT_SECRET=${{ secrets.GOOGLE_CLIENT_SECRET }}
-          IMP_API_KEY=${{ secrets.IMP_API_KEY }}
-          IMP_API_SECRET=${{ secrets.IMP_API_SECRET }}
-          KAKAO_CLIENT_ID=${{ secrets.KAKAO_CLIENT_ID }}
-          KAKAO_CLIENT_SECRET=${{ secrets.KAKAO_CLIENT_SECRET }}
-          MAIL_PASSWORD=${{ secrets.MAIL_PASSWORD }}
-          NAVER_CLIENT_ID=${{ secrets.NAVER_CLIENT_ID }}
-          NAVER_CLIENT_SECRET=${{ secrets.NAVER_CLIENT_SECRET }}
-          OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }}
-          GPT_API_KEY=${{ secrets.GPT_API_KEY }}
-          REDIS_USERNAME=${{ secrets.REDIS_USERNAME }}
-          REDIS_PASSWORD=${{ secrets.REDIS_PASSWORD }}
-          SPRING_PROFILES_ACTIVE=prod
-          EOF
-
-      - name: 서버에 .env.production 전송
-        uses: appleboy/scp-action@v0.1.4
+      - name: Download Docker image artifact
+        uses: actions/download-artifact@v4
         with:
-          host: ${{ secrets.DEPLOY_SERVER_HOST }}
-          username: ${{ secrets.DEPLOY_SERVER_USER }}
-          key: ${{ secrets.DEPLOY_SSH_KEY }}
-          source: ".env.production"
-          target: "~"
+          name: docker-image
 
-      - name: 서버에 SSH 접속하여 Docker 실행
-        uses: appleboy/ssh-action@v0.1.5
+      - name: Verify artifact
+        run: ls -lh myapp.tar
+
+      - name: Transfer Docker image to Bastion
+        uses: appleboy/scp-action@v0.1.7
         with:
-          host: ${{ secrets.DEPLOY_SERVER_HOST }}
-          username: ${{ secrets.DEPLOY_SERVER_USER }}
-          key: ${{ secrets.DEPLOY_SSH_KEY }}
+            host: ${{ secrets.NHN_HOST }}
+            username: ${{ secrets.NHN_USER }}
+            key: ${{ secrets.NHN_SSH_KEY }}
+            source: myapp.tar
+            target: /home/ubuntu/temp/
+
+      - name: Deploy on App Server via Bastion
+        uses: appleboy/ssh-action@v0.1.7
+        with:
+            host: ${{ secrets.NHN_HOST }}
+            username: ${{ secrets.NHN_USER }}
+            key: ${{ secrets.NHN_SSH_KEY }}
+            script: |
+                  set -e
+                  cd /home/ubuntu/temp
+                  
+                  cat << 'EOF' > .env.production
+                  SPRING_PROFILES_ACTIVE=prod
+                  GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }}
+                  GOOGLE_CLIENT_SECRET=${{ secrets.GOOGLE_CLIENT_SECRET }}
+                  IMP_API_KEY=${{ secrets.IMP_API_KEY }}
+                  IMP_API_SECRET=${{ secrets.IMP_API_SECRET }}
+                  KAKAO_CLIENT_ID=${{ secrets.KAKAO_CLIENT_ID }}
+                  KAKAO_CLIENT_SECRET=${{ secrets.KAKAO_CLIENT_SECRET }}
+                  MAIL_PASSWORD=${{ secrets.MAIL_PASSWORD }}
+                  NAVER_CLIENT_ID=${{ secrets.NAVER_CLIENT_ID }}
+                  NAVER_CLIENT_SECRET=${{ secrets.NAVER_CLIENT_SECRET }}
+                  OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }}
+                  GPT_API_KEY=${{ secrets.GPT_API_KEY }}
+                  REDIS_HOSTNAME=${{ secrets.REDIS_HOSTNAME }}
+                  REDIS_USERNAME=${{ secrets.REDIS_USERNAME }}
+                  REDIS_PASSWORD=${{ secrets.REDIS_PASSWORD }}
+                  REDIS_PORT=${{ secrets.REDIS_PORT }}
+                  MONGO_HOSTNAME=${{ secrets.MONGO_HOSTNAME }}
+                  MONGO_USERNAME=${{ secrets.MONGO_USERNAME }}
+                  MONGO_PASSWORD=${{ secrets.MONGO_PASSWORD }}
+                  MONGO_PORT=${{ secrets.MONGO_PORT }}
+                  MONGO_DATABASE=${{ secrets.MONGO_DATABASE }}
+                  KAFKA_HOST=${{ secrets.KAFKA_HOST }}
+                  EOF
+                  
+                  scp myapp.tar .env.production app:/home/ubuntu/app/
+                  
+                  ssh app << 'ENDSSH'
+                    set -e
+                    cd /home/ubuntu/app
+                  
+                    docker stop doctalk 2>/dev/null || true
+                    docker rm doctalk 2>/dev/null || true
+                    docker load -i myapp.tar
+                  
+                    docker run -d \
+                      --name doctalk \
+                      -p 8080:8080 \
+                      --env-file .env.production \
+                      --restart unless-stopped \
+                      doctalk:${{ github.sha }}
+                  
+                    rm -f myapp.tar
+                  ENDSSH
+
+      - name: Cleanup Bastion temp files
+        if: always()
+        uses: appleboy/ssh-action@v0.1.7
+        with:
+          host: ${{ secrets.NHN_HOST }}
+          username: ${{ secrets.NHN_USER }}
+          key: ${{ secrets.NHN_SSH_KEY }}
           script: |
-            IMAGE_NAME=doctalk
-            IMAGE_TAG=${{ github.sha }}
-            AWS_ACCOUNT_ID=${{ secrets.AWS_ACCOUNT_ID }}
-            AWS_REGION=${{ secrets.AWS_REGION }}
-
-            sudo docker network create --driver bridge app-network || true
-
-            sudo docker stop $IMAGE_NAME || true
-            sudo docker rm $IMAGE_NAME || true
-            sudo docker stop zookeeper || true
-            sudo docker rm -v zookeeper || true
-            sudo docker stop kafka || true
-            sudo docker rm -v kafka || true
-
-            sudo docker login --username AWS \
-              --password $(aws ecr get-login-password --region $AWS_REGION) \
-              $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com
-
-            sudo docker pull $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$IMAGE_NAME:$IMAGE_TAG
-
-            sudo docker run -d \
-              --name zookeeper \
-              --network app-network \
-              -e ALLOW_ANONYMOUS_LOGIN=yes \
-              bitnami/zookeeper:latest
-
-            sudo docker run -d \
-              --name kafka \
-              --network app-network \
-              -e KAFKA_CFG_ZOOKEEPER_CONNECT=zookeeper:2181 \
-              -e KAFKA_CFG_LISTENERS=PLAINTEXT://:9092 \
-              -e KAFKA_CFG_ADVERTISED_LISTENERS=PLAINTEXT://kafka:9092 \
-              -e KAFKA_BROKER_ID=1 \
-              -e ALLOW_PLAINTEXT_LISTENER=yes \
-              --tmpfs /bitnami/kafka:rw,size=200m \
-              bitnami/kafka:3.3.2
-
-            sudo docker run -d \
-              --name $IMAGE_NAME \
-              --network app-network \
-              -p 8080:8080 \
-              --env-file ~/.env.production \
-              $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$IMAGE_NAME:$IMAGE_TAG
+            rm -f /home/ubuntu/temp/myapp.tar
+            rm -f /home/ubuntu/temp/.env.production

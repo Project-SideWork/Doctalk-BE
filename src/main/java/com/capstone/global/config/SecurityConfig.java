@@ -71,18 +71,6 @@ public class SecurityConfig {
 
 
     @Bean
-    @Order(1)
-    public SecurityFilterChain actuatorSecurityFilterChain(HttpSecurity http) throws Exception {
-        return http
-                .securityMatcher("/actuator/**")
-                .authorizeHttpRequests(auth -> auth
-                        .anyRequest().permitAll()
-                )
-                .csrf(AbstractHttpConfigurer::disable)
-                .build();
-    }
-
-    @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 
         http.csrf(AbstractHttpConfigurer::disable); // csrf 공격 방지
@@ -104,7 +92,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(requests -> requests
                         .requestMatchers("/oauth2/**","/register/*","/login", "/swagger-ui/**",    // Swagger UI 관련 경로
                                 "/v3/api-docs/**","/csrf-token", "/project/**", "/socket/**","/document/**", "/editing", "/notification/**",
-                                "/mypage/email/avail","/mypage/password/new","/mypage/email/check", "/project/invite/accept", "/oauth/login").permitAll()
+                                "/mypage/email/avail","/mypage/password/new","/mypage/email/check", "/project/invite/accept", "/oauth/login", "/health", "/actuator/health").permitAll()
                         .anyRequest().authenticated()
                 )
                 .oauth2Login(configure ->
