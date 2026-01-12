@@ -30,16 +30,16 @@ import java.time.Duration;
 @Configuration
 public class RedisConfig {
 
-    @Value("${spring.data.redis.host}")
+    @Value("${spring.redis.host}")
     private String redisHost;
 
-    @Value("${spring.data.redis.port}")
+    @Value("${spring.redis.port}")
     private int redisPort;
 
-    @Value("${spring.data.redis.username}")
+    @Value("${spring.redis.username}")
     private String redisUser;
 
-    @Value("${spring.data.redis.password}")
+    @Value("${spring.redis.password}")
     private String redisPassword;
 
     @Bean
