@@ -13,4 +13,5 @@ public interface CustomTaskRepository {
     List<Task> findByUserEmailAndSortDeadLine(String email);
     List<Task> findByUserEmail(String email);
     List<Task> findByProjectId(String projectId);
+    List<Task> findByProjectIds(List<String> projectIds);
 }
