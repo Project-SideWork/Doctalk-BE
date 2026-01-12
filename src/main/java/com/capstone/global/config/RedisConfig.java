@@ -3,6 +3,7 @@ package com.capstone.global.config;
 import com.capstone.domain.chat.config.RedisSubscriber;
 import com.capstone.domain.chat.dto.ChatRequest;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.lettuce.core.RedisURI;
 import org.redisson.Redisson;
 import org.redisson.api.RedissonClient;
 import org.redisson.config.Config;
@@ -13,6 +14,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.cache.RedisCacheConfiguration;
 import org.springframework.data.redis.cache.RedisCacheManager;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
+import org.springframework.data.redis.connection.RedisPassword;
+import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.listener.ChannelTopic;
@@ -30,51 +33,53 @@ import java.time.Duration;
 @Configuration
 public class RedisConfig {
 
-    @Value("${spring.data.redis.host}")
-    private String redisHost;
-
-    @Value("${spring.data.redis.port}")
-    private int redisPort;
-
-    @Value("${spring.data.redis.username}")
-    private String redisUser;
-
-    @Value("${spring.data.redis.password}")
-    private String redisPassword;
+    @Value("${spring.data.redis.url}")
+    private String redisUrl;
 
     @Bean
-    public CacheManager cacheManager(RedisConnectionFactory redisConnectionFactory) {
-        // 기본 캐시 설정
-        RedisCacheConfiguration cacheConfig = RedisCacheConfiguration.defaultCacheConfig()
-                .entryTtl(Duration.ofMinutes(10))  // 캐시 만료 시간 설정 (10분)
-                .disableCachingNullValues()  // null 값 캐싱 방지
-                .serializeValuesWith(RedisSerializationContext.SerializationPair.fromSerializer(new GenericJackson2JsonRedisSerializer()));
+    public CacheManager cacheManager(RedisConnectionFactory factory) {
+        RedisCacheConfiguration cacheConfig =
+                RedisCacheConfiguration.defaultCacheConfig()
+                        .entryTtl(Duration.ofMinutes(10))
+                        .disableCachingNullValues()
+                        .serializeValuesWith(
+                                RedisSerializationContext.SerializationPair.fromSerializer(
+                                        new GenericJackson2JsonRedisSerializer()
+                                )
+                        );
 
-        return RedisCacheManager.builder(redisConnectionFactory)
+        return RedisCacheManager.builder(factory)
                 .cacheDefaults(cacheConfig)
                 .build();
     }
 
     @Bean
     public RedisConnectionFactory redisConnectionFactory() {
-        LettuceConnectionFactory factory = new LettuceConnectionFactory(redisHost, redisPort);
-        factory.setPassword(redisPassword);
-        return factory;
+        RedisURI redisURI = RedisURI.create(redisUrl);
+
+        RedisStandaloneConfiguration config =
+                new RedisStandaloneConfiguration();
+        config.setHostName(redisURI.getHost());
+        config.setPort(redisURI.getPort());
+
+        if (redisURI.getUsername() != null) {
+            config.setUsername(redisURI.getUsername());
+        }
+        if (redisURI.getPassword() != null) {
+            config.setPassword(RedisPassword.of(redisURI.getPassword()));
+        }
+
+        return new LettuceConnectionFactory(config);
     }
+
 
     @Bean
     public RedissonClient redissonClient() {
         Config config = new Config();
-
-        String redisUrl = "redis://" +
-                redisHost + ":" + redisPort;
         config.useSingleServer()
                 .setAddress(redisUrl)
-                .setUsername(redisUser)
-                .setPassword(redisPassword)
-                .setConnectionMinimumIdleSize(2) // 최소 연결 유지
-                .setConnectionPoolSize(10); // 연결 풀 크기 설정
-
+                .setConnectionMinimumIdleSize(2)
+                .setConnectionPoolSize(10);
         return Redisson.create(config);
     }
 
