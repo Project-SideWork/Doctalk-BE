@@ -50,19 +50,31 @@ public class ProjectService {
         return project;
     }
 
+
     public ProjectResponse getProjectContent(String projectId){
         List<ProjectUser> projectUserList= projectUserRepository.findUserIdAndRoleByProjectId(projectId);
+
+        List<String> allUserEmails = projectUserList.stream()
+            .map(ProjectUser::getUserId)
+            .distinct()
+            .toList();
+
+        Map<String, User> userMap = userRepository.findAllByEmailIn(allUserEmails)
+            .stream()
+            .collect(Collectors.toMap(User::getEmail, user -> user));
+
         List<ProjectCoworkerDto> projectCoworkerDtos= projectUserList.stream()
-                .map(coworker->
-                        {
-                            User user = userService.findUserByEmailOrThrow(coworker.getUserId());
-                            return ProjectCoworkerDto.from(
-                                    coworker.getUserId(),
-                                    coworker.getRole(),
-                                    user.getName());
-                        }
-                )
-                .toList();
+            .map(coworker->
+                {
+                    User user = userMap.get(coworker.getUserId());
+                    String userName = user != null ? user.getName() : coworker.getUserId();
+                    return ProjectCoworkerDto.from(
+                        coworker.getUserId(),
+                        coworker.getRole(),
+                        userName);
+                }
+            )
+            .toList();
         return ProjectResponse.from(findProjectByProjectIdOrThrow(projectId),projectCoworkerDtos);
     }
 
@@ -102,7 +114,7 @@ public class ProjectService {
 
     public Project findProjectByProjectIdOrThrow(String projectId){
         return projectRepository.findById(projectId)
-                .orElseThrow(() -> new GlobalException(ErrorStatus.PROJECT_NOT_FOUND));
+            .orElseThrow(() -> new GlobalException(ErrorStatus.PROJECT_NOT_FOUND));
     }
 
 
@@ -110,28 +122,54 @@ public class ProjectService {
         List<String> projectIds = parseProjectIds(projectUserRepository.findByUserId(customUserDetails.getEmail()));
         List<Project> projects = projectRepository.findAllById(projectIds);
 
-        return projects.stream()
-                .map(project -> {
-                    List<ProjectUser> projectUserList= projectUserRepository.findUserIdAndRoleByProjectId(project.getId());
-                    List<ProjectCoworkerDto> projectCoworkerDtos= projectUserList.stream()
-                            .map(coworker->{
-                                User user = userService.findUserByEmailOrThrow(coworker.getUserId());
-                                return ProjectCoworkerDto.from(
-                                        coworker.getUserId(),
-                                        coworker.getRole(),
-                                        user.getName());
+        if (projects.isEmpty()) {
+            return List.of();
+        }
 
-                            })
-                            .toList();
-                    return ProjectResponse.from(project, projectCoworkerDtos);
-                })
-                .toList();
+        List<String> projectIdList = projects.stream()
+            .map(Project::getId)
+            .toList();
+        List<ProjectUser> allProjectUsers = projectUserRepository.findUserIdAndRoleByProjectIdIn(projectIdList);
+
+        Map<String, List<ProjectUser>> projectUserMap = allProjectUsers.stream()
+            .collect(Collectors.groupingBy(ProjectUser::getProjectId));
+
+        List<String> allUserEmails = allProjectUsers.stream()
+            .map(ProjectUser::getUserId)
+            .distinct()
+            .toList();
+        Map<String, User> userMap = userRepository.findAllByEmailIn(allUserEmails)
+            .stream()
+            .collect(Collectors.toMap(User::getEmail, user -> user));
+
+        return projects.stream()
+            .map(project -> {
+                List<ProjectUser> projectUserList = projectUserMap.getOrDefault(
+                    project.getId(),
+                    List.of()
+                );
+
+                List<ProjectCoworkerDto> projectCoworkerDtos = projectUserList.stream()
+                    .map(coworker -> {
+                        User user = userMap.get(coworker.getUserId());
+                        String userName = user != null ? user.getName() : coworker.getUserId();
+
+                        return ProjectCoworkerDto.from(
+                            coworker.getUserId(),
+                            coworker.getRole(),
+                            userName);
+
+                    })
+                    .toList();
+                return ProjectResponse.from(project, projectCoworkerDtos);
+            })
+            .toList();
     }
 
     public List<String> parseProjectIds(List<ProjectUser> projectUsers){
         return projectUsers.stream()
-                .map(ProjectUser::getProjectId)
-                .toList();
+            .map(ProjectUser::getProjectId)
+            .toList();
     }
 
     public void saveProjectUsers(ProjectSaveRequest projectSaveRequest, Project project, String inviterEmail){
@@ -140,31 +178,31 @@ public class ProjectService {
 
         if (projectSaveRequest.invitedEmails() != null && !projectSaveRequest.invitedEmails().isEmpty()) {
             projectSaveRequest.invitedEmails().forEach(
-                    invitedEmail -> {
-                        if (userRepository.findUserByEmail(invitedEmail).isEmpty()){
-                            invalidEmails.add(invitedEmail);
-                        }
+                invitedEmail -> {
+                    if (userRepository.findUserByEmail(invitedEmail).isEmpty()){
+                        invalidEmails.add(invitedEmail);
                     }
+                }
             );
             projectUsers.addAll(
-                    projectSaveRequest.invitedEmails().stream()
-                            .map(email -> ProjectUser.builder()
-                                    .projectId(project.getId())
-                                    .userId(email)
-                                    .role("ROLE_MEMBER")
-                                    .joinedAt(LocalDate.now().toString())
-                                    .build()
-                            ).toList());
+                projectSaveRequest.invitedEmails().stream()
+                    .map(email -> ProjectUser.builder()
+                        .projectId(project.getId())
+                        .userId(email)
+                        .role("ROLE_MEMBER")
+                        .joinedAt(LocalDate.now().toString())
+                        .build()
+                    ).toList());
         }
         if (!invalidEmails.isEmpty()) {
             throw new InvalidUserException(invalidEmails);
         }
         ProjectUser inviteUser = ProjectUser.builder()
-                .projectId(project.getId())
-                .userId(inviterEmail)
-                .role("ROLE_MANAGER")
-                .joinedAt(LocalDate.now().toString())
-                .build();
+            .projectId(project.getId())
+            .userId(inviterEmail)
+            .role("ROLE_MANAGER")
+            .joinedAt(LocalDate.now().toString())
+            .build();
         projectUsers.add(inviteUser);
         projectUserRepository.saveAll(projectUsers);
 

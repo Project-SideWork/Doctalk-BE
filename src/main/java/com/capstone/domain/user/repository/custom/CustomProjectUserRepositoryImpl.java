@@ -21,14 +21,23 @@ public class CustomProjectUserRepositoryImpl implements CustomProjectUserReposit
     private final MongoTemplate mongoTemplate;
 
     @Override
+    public List<ProjectUser> findUserIdAndRoleByProjectIdIn(List<String> projectIds) {
+        if (projectIds == null || projectIds.isEmpty()) {
+            return List.of();
+        }
+        Query query = new Query(Criteria.where("projectId").in(projectIds));
+        return mongoTemplate.find(query, ProjectUser.class);
+    }
+
+    @Override
     public List<String> findUserIdByProjectId(String projectId) {
         Query query = new Query(Criteria.where("projectId").is(projectId));
         query.fields().include("userId");
 
         List<ProjectUser> projectUsers = mongoTemplate.find(query, ProjectUser.class);
         return projectUsers.stream()
-                .map(ProjectUser::getUserId) // 또는 getEmail(), 실제 필드명에 따라 변경
-                .toList();
+            .map(ProjectUser::getUserId) // 또는 getEmail(), 실제 필드명에 따라 변경
+            .toList();
     }
     @Override
     public List<Project> findProjectsByUserId(String userId) {
@@ -37,8 +46,8 @@ public class CustomProjectUserRepositoryImpl implements CustomProjectUserReposit
         List<ProjectUser> projectUsers = mongoTemplate.find(query, ProjectUser.class);
 
         List<String> projectIds = projectUsers.stream()
-                .map(ProjectUser::getProjectId)
-                .toList();
+            .map(ProjectUser::getProjectId)
+            .toList();
         if (projectIds.isEmpty()) {
             return List.of();
         }
@@ -57,8 +66,8 @@ public class CustomProjectUserRepositoryImpl implements CustomProjectUserReposit
     public boolean existsByProjectIdAndUserId(String projectId, String userId) {
         Query query = new Query();
         query.addCriteria(
-                Criteria.where("projectId").is(projectId)
-                        .and("userId").is(userId)
+            Criteria.where("projectId").is(projectId)
+                .and("userId").is(userId)
         );
         return mongoTemplate.exists(query, ProjectUser.class);
     }
