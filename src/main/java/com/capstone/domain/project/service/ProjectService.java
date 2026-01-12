@@ -50,16 +50,28 @@ public class ProjectService {
         return project;
     }
 
+
     public ProjectResponse getProjectContent(String projectId){
         List<ProjectUser> projectUserList= projectUserRepository.findUserIdAndRoleByProjectId(projectId);
+
+        List<String> allUserEmails = projectUserList.stream()
+            .map(ProjectUser::getUserId)
+            .distinct()
+            .toList();
+
+        Map<String, User> userMap = userRepository.findAllByEmailIn(allUserEmails)
+            .stream()
+            .collect(Collectors.toMap(User::getEmail, user -> user));
+
         List<ProjectCoworkerDto> projectCoworkerDtos= projectUserList.stream()
             .map(coworker->
                 {
-                    User user = userService.findUserByEmailOrThrow(coworker.getUserId());
+                    User user = userMap.get(coworker.getUserId());
+                    String userName = user != null ? user.getName() : coworker.getUserId();
                     return ProjectCoworkerDto.from(
                         coworker.getUserId(),
                         coworker.getRole(),
-                        user.getName());
+                        userName);
                 }
             )
             .toList();
