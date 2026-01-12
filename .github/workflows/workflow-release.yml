@@ -91,82 +91,66 @@ jobs:
           username: ${{ secrets.NHN_USER }}
           key: ${{ secrets.NHN_SSH_KEY }}
           script: |
-              # SSH config의 'app' alias 사용
-              ssh app bash << 'ENDSSH'
-                set -e
-              
-                cd /home/ubuntu/app
-              
-                echo "=== Current directory and files ==="
-                pwd
-                ls -lh
-              
-                # Docker 네트워크 생성
-                docker network create --driver bridge app-network 2>/dev/null || echo "Network exists"
-              
-                # 환경변수
-                IMAGE_NAME=doctalk
-                IMAGE_TAG=${{ github.sha }}
-              
-                echo "IMAGE_NAME: \$IMAGE_NAME"
-                echo "IMAGE_TAG: \$IMAGE_TAG"
-              
-                # 기존 컨테이너 정리
-                echo "=== Cleaning up old containers ==="
-                docker stop \$IMAGE_NAME 2>/dev/null || echo "No container to stop"
-                docker rm \$IMAGE_NAME 2>/dev/null || echo "No container to remove"
-              
-                # 이미지 로드
-                echo "=== Loading Docker image ==="
-                docker load -i myapp.tar
-              
-                # 로드된 이미지 확인
-                echo "=== Docker images ==="
-                docker images
-              
-                LOADED_IMAGE=\$(docker images --format "{{.Repository}}:{{.Tag}}" | grep \$IMAGE_NAME | head -1)
-                echo "Loaded image: \$LOADED_IMAGE"
-              
-                # 필요시 재태깅
-                if [ "\$LOADED_IMAGE" != "\$IMAGE_NAME:\$IMAGE_TAG" ]; then
-                  echo "Retagging image..."
-                  docker tag \$LOADED_IMAGE \$IMAGE_NAME:\$IMAGE_TAG
-                fi
-              
-                # 컨테이너 실행
-                echo "=== Starting Docker container ==="
-                docker run -d \
-                  --name \$IMAGE_NAME \
-                  --network app-network \
-                  -p 8080:8080 \
-                  --env-file /home/ubuntu/app/.env.production \
-                  -v /var/log/spring-boot:/app/logs \
-                  --restart unless-stopped \
-                  \$IMAGE_NAME:\$IMAGE_TAG
-              
-                # 컨테이너 시작 대기
-                echo "Waiting for container to start..."
-                sleep 5
-              
-                # 상태 확인
-                echo "=== Container Status ==="
-                docker ps -a | grep \$IMAGE_NAME
-              
-                echo "=== Container Logs ==="
-                docker logs \$IMAGE_NAME --tail 50
-              
-                # 정리
-                echo "Cleaning up tar file..."
-                rm -f myapp.tar
-              ENDSSH
+            set -e
 
-            - name: Cleanup Bastion temp files
-              if: always()
-              uses: appleboy/ssh-action@v0.1.7
-              with:
-                host: ${{ secrets.NHN_HOST }}
-                username: ${{ secrets.NHN_USER }}
-                key: ${{ secrets.NHN_SSH_KEY }}
-                script: |
-                  rm -f /home/ubuntu/temp/myapp.tar
-                  rm -f /home/ubuntu/temp/.env.production
+            echo "=== On Bastion ==="
+            cd /home/ubuntu/temp
+            ls -lh
+
+            echo "=== Copy files to App Server ==="
+            scp myapp.tar .env.production app:/home/ubuntu/app/
+
+            echo "=== Deploying on App Server ==="
+            ssh app << 'ENDSSH'
+              set -e
+
+              cd /home/ubuntu/app
+
+              echo "=== Current directory ==="
+              pwd
+              ls -lh
+
+              IMAGE_NAME=doctalk
+              IMAGE_TAG=${{ github.sha }}
+
+              docker network create app-network 2>/dev/null || true
+
+              echo "=== Stop & remove old container ==="
+              docker stop $IMAGE_NAME 2>/dev/null || true
+              docker rm $IMAGE_NAME 2>/dev/null || true
+
+              echo "=== Load Docker image ==="
+              docker load -i myapp.tar
+
+              echo "=== Start container ==="
+              docker run -d \
+                --name $IMAGE_NAME \
+                --network app-network \
+                -p 8080:8080 \
+                --env-file .env.production \
+                -v /var/log/spring-boot:/app/logs \
+                --restart unless-stopped \
+                $IMAGE_NAME:$IMAGE_TAG
+
+              sleep 5
+
+              echo "=== Container status ==="
+              docker ps | grep $IMAGE_NAME
+
+              echo "=== Container logs ==="
+              docker logs $IMAGE_NAME --tail 50
+
+              echo "=== Cleanup app server files ==="
+              rm -f myapp.tar
+            ENDSSH
+
+      - name: Cleanup Bastion temp files
+        if: always()
+        uses: appleboy/ssh-action@v0.1.7
+        with:
+          host: ${{ secrets.NHN_HOST }}
+          username: ${{ secrets.NHN_USER }}
+          key: ${{ secrets.NHN_SSH_KEY }}
+          script: |
+            rm -f /home/ubuntu/temp/myapp.tar
+            rm -f /home/ubuntu/temp/.env.production
