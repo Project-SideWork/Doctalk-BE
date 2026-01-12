@@ -84,6 +84,15 @@ jobs:
                   SPRING_PROFILES_ACTIVE=prod
                   GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }}
                   GOOGLE_CLIENT_SECRET=${{ secrets.GOOGLE_CLIENT_SECRET }}
+                  IMP_API_KEY=${{ secrets.IMP_API_KEY }}
+                  IMP_API_SECRET=${{ secrets.IMP_API_SECRET }}
+                  KAKAO_CLIENT_ID=${{ secrets.KAKAO_CLIENT_ID }}
+                  KAKAO_CLIENT_SECRET=${{ secrets.KAKAO_CLIENT_SECRET }}
+                  MAIL_PASSWORD=${{ secrets.MAIL_PASSWORD }}
+                  NAVER_CLIENT_ID=${{ secrets.NAVER_CLIENT_ID }}
+                  NAVER_CLIENT_SECRET=${{ secrets.NAVER_CLIENT_SECRET }}
+                  OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }}
+                  GPT_API_KEY=${{ secrets.GPT_API_KEY }}
                   REDIS_HOSTNAME=${{ secrets.REDIS_HOSTNAME }}
                   REDIS_USERNAME=${{ secrets.REDIS_USERNAME }}
                   REDIS_PASSWORD=${{ secrets.REDIS_PASSWORD }}

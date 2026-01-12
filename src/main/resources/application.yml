@@ -20,7 +20,7 @@ spring:
       max-request-size: 50MB
 
   kafka:
-    bootstrap-servers: kafka:9092
+    bootstrap-servers: ${KAFKA_HOST}:9092
     topics:
       task-created: task.created
       task-updated: task.updated
