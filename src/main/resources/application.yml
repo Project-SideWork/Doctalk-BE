@@ -146,10 +146,3 @@ springdoc:
   default-produces-media-type: application/json
   override-with-generic-response: false
 
-
-management:
-  endpoints:
-    web:
-      exposure:
-        include: health
-
