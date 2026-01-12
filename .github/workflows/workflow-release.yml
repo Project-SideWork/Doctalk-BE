@@ -77,9 +77,9 @@ jobs:
       - name: Transfer files to Bastion Host
         uses: appleboy/scp-action@v0.1.7
         with:
-            host: ${{ secrets.BASTION_HOST }}
-            username: ${{ secrets.BASTION_USER }}
-            key: ${{ secrets.BASTION_SSH_KEY }}
+            host: ${{ secrets.NHN_HOST }}
+            username: ${{ secrets.NHN_USER }}
+            key: ${{ secrets.NHN_SSH_KEY }}
             port: 22
             source: "myapp.tar,.env.production"
             target: "/home/ubuntu/temp/"
@@ -87,14 +87,11 @@ jobs:
       - name: Deploy via Bastion to Application Server
         uses: appleboy/ssh-action@v0.1.7
         with:
-                host: ${{ secrets.BASTION_HOST }}
-                username: ${{ secrets.BASTION_USER }}
-                key: ${{ secrets.BASTION_SSH_KEY }}
+                host: ${{ secrets.NHN_HOST }}
+                username: ${{ secrets.NHN_USER }}
+                key: ${{ secrets.NHN_SSH_KEY }}
                 port: 22
                 script: |
-                  # Bastion에서 Application Server의 Private Key 설정 (최초 1회만)
-                  # 또는 Bastion에 이미 Private Key가 있다고 가정
-                  
                   # Application Server로 파일 전송
                   scp -o StrictHostKeyChecking=no \
                     /home/ubuntu/temp/myapp.tar \
