@@ -28,7 +28,10 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import static com.capstone.domain.mypage.message.MypageMessages.PASSWORD_MISMATCH;
 import static com.capstone.domain.user.message.UserMessages.USER_FOUND;
@@ -104,7 +107,6 @@ public class MypageService {
     @Transactional
     public String modifyEmail(CustomUserDetails userDetails, UserDto.UserEmailDto userEmailDto) throws Exception {
         String email=userDetails.getEmail();
-        log.info("email {}",email);
         Optional<User> user = userRepository.findUserByEmail(email);
         if(user.isEmpty()) {
             throw new UserNotFoundException();
@@ -121,36 +123,42 @@ public class MypageService {
         User userExists = user.get();
         userExists.setEmail(userEmailDto.getNewEmail());
         userRepository.save(userExists);
-
-        //프로젝트 및 작업에 저장된 이메일 변경
+        
         List<Project> projectList=getUserProject(userExists);
-        log.info("projectList {}",projectList.get(0).getProjectName());
-        for(Project project:projectList)
+
+        if(!projectList.isEmpty())
         {
-            List<String> taskIds= project.getTaskIds();
-            log.info("editors {}",taskIds.get(0));
-            List<Task> taskList=taskRepository.findByIds(taskIds);
-            if (taskIds != null && !taskIds.isEmpty())
-            {
-                for (Task task : taskList) {
-                    List<String> editors = task.getEditors();
-                    log.info("editors {}",editors.get(0));
-                    if (editors != null && editors.contains(email))
-                    {
+            List<String> taskIds =projectList.stream()
+                .map(Project::getTaskIds)
+                .filter(Objects::nonNull)
+                .flatMap(List::stream)
+                .distinct()
+                .toList();
+            List<Task> allTasks = taskRepository.findByIds(taskIds);
+
+            List<Task> tasksToUpdates =allTasks.stream()
+                .filter(task -> {
+                    List<String> editors =task.getEditors();
+                    if(editors != null && !editors.contains(email)) {
                         editors.remove(email);
                         editors.add(userEmailDto.getNewEmail());
                         task.setEditors(editors);
-                        taskRepository.save(task);
+                        return true;
                     }
-                }
+                    return false;
+                })
+                .toList();
+            if(!tasksToUpdates.isEmpty()) {
+                taskRepository.saveAll(tasksToUpdates);
             }
         }
         //결제 엔티티에 저장된 이메일 변경
-        List<PaymentEntity> paymentEntityList=paymentRepository.findByUserEmail(email);
-        for(PaymentEntity paymentEntity:paymentEntityList)
-        {
-            paymentEntity.setUserEmail(userEmailDto.getNewEmail());
-            paymentRepository.save(paymentEntity);
+        List<PaymentEntity> paymentEntityList = paymentRepository.findByUserEmail(email);
+        paymentEntityList.forEach(payment ->
+            payment.setUserEmail(userEmailDto.getNewEmail())
+        );
+        if (!paymentEntityList.isEmpty()) {
+            paymentRepository.saveAll(paymentEntityList);
         }
 
         return userEmailDto.getNewEmail();
@@ -170,22 +178,33 @@ public class MypageService {
         {
             throw new ProjectNotFoundException();
         }
-        for(Project project:projectList)
+
+        if(!projectList.isEmpty())
         {
-            List<String> taskIds= project.getTaskIds();
-            List<Task> taskList=taskRepository.findByIds(taskIds);
-            if (taskIds != null && !taskIds.isEmpty())
-            {
-                for (Task task : taskList) {
-                    List<String> editors = task.getEditors();
-                    if (editors != null && editors.contains(email))
-                    {
+            List<String> taskIds =projectList.stream()
+                .map(Project::getTaskIds)
+                .filter(Objects::nonNull)
+                .flatMap(List::stream)
+                .distinct()
+                .toList();
+            List<Task> allTasks = taskRepository.findByIds(taskIds);
+
+            List<Task> tasksToUpdates =allTasks.stream()
+                .filter(task -> {
+                    List<String> editors =task.getEditors();
+                    if(editors != null && !editors.contains(email)) {
                         editors.remove(email);
-                        taskRepository.save(task);
+                        task.setEditors(editors);
+                        return true;
                     }
-                }
+                    return false;
+                })
+                .toList();
+            if(!tasksToUpdates.isEmpty()) {
+                taskRepository.saveAll(tasksToUpdates);
             }
         }
+
         List<ProjectUser> projectUserList=projectUserRepository.findByUserId(email);
         projectUserRepository.deleteAll(projectUserList);
         userRepository.delete(user.get());
@@ -200,7 +219,6 @@ public class MypageService {
     public List<CalendarTaskDto> getUserTask(CustomUserDetails userDetails)
     {
         String email=userDetails.getEmail();
-        log.info(email);
         Optional<User> user=userRepository.findUserByEmail(email);
         if(user.isEmpty())
         {
@@ -208,24 +226,20 @@ public class MypageService {
         }
 
         List<Project> projectList=getUserProject(user.orElse(null));
-
-        List<CalendarTaskDto> calendarTaskDtoList = new ArrayList<>();
-        for(Project project : projectList) {
-            List<String> taskIds = project.getTaskIds();
-            if(taskIds == null || taskIds.isEmpty()) {
-                continue;
-            }
-
-            List<Task> tasks = taskRepository.findByProjectId(project.getId());
-
-            for (Task task : tasks) {
-                CalendarTaskDto calendarTaskDto=CalendarTaskDto.from(task);
-                calendarTaskDtoList.add(calendarTaskDto);
-            }
+        
+        if(projectList == null || projectList.isEmpty()) {
+            return new ArrayList<>();
         }
-        return calendarTaskDtoList;
 
+        List<String> projectIds = projectList.stream()
+            .map(Project::getId)
+            .toList();
 
+        List<Task> allTasks = taskRepository.findByProjectIds(projectIds);
+
+        return allTasks.stream()
+            .map(CalendarTaskDto::from)
+            .toList();
     }
 
 
