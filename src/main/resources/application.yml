@@ -8,7 +8,7 @@ spring:
     mongodb:
       uri: mongodb://${MONGO_USERNAME}:${MONGO_PASSWORD}@${MONGO_HOSTNAME}:${MONGO_PORT}/${MONGO_DATABASE}?authSource=admin
     redis:
-      url: redis://admin:${REDIS_PASSWORD}@${REDIS_HOSTNAME}:6379
+      url: redis://${REDIS_USERNAME}:${REDIS_PASSWORD}@${REDIS_HOSTNAME}:${REDIS_PORT}
       timeout: 6000ms
 
   servlet:
