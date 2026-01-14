@@ -3,6 +3,8 @@ package com.capstone.domain.file.controller;
 import com.capstone.docs.FileControllerDocs;
 import com.capstone.domain.file.dto.FileResponse;
 import com.capstone.domain.file.service.FileService;
+import com.capstone.global.ratelimit.annotation.RateLimit;
+import com.capstone.global.ratelimit.enums.RateLimitKeyType;
 import com.capstone.global.response.ApiResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.Resource;
@@ -23,6 +25,7 @@ public class FileController implements FileControllerDocs {
 
 
     @PostMapping(value = "/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @RateLimit(limit = 50, duration = 3600, keyType = RateLimitKeyType.USER)
     public ResponseEntity<ApiResponse<FileResponse>> uploadFile(
             @RequestParam("file") MultipartFile file) throws Exception {
         return ResponseEntity.ok(ApiResponse.onSuccess(fileService.upload(file)));
