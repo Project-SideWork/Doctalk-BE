@@ -82,7 +82,7 @@ dependencies {
     implementation 'com.github.iamport:iamport-rest-client-java:0.2.23'
     implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
 
-    //late limiting
+    //rate limiting
     implementation "com.bucket4j:bucket4j_jdk17-core:8.13.0"
     implementation "com.bucket4j:bucket4j_jdk17-redisson:8.13.0"
 
