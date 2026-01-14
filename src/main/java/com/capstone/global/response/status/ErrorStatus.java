@@ -47,6 +47,9 @@ public enum ErrorStatus implements BaseErrorCode {
 
     //Invite Code
     CODE_NOT_FOUND(HttpStatus.NOT_FOUND, "INVITE_CODE_001", "이미 만료되었거나 존재하지 않는 초대코드 입니다."),
+    
+    // RateLimit
+    RATE_LIMIT_EXCEEDED(HttpStatus.TOO_MANY_REQUESTS, "RATE_LIMIT_001", "요청 횟수를 초과했습니다. 잠시 후 다시 시도해주세요."),
     ;
 
     private final HttpStatus httpStatus;
