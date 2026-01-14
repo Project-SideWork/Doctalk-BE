@@ -45,7 +45,11 @@ public class RateLimitFilter extends OncePerRequestFilter {
         "/api/mypage/email/check", new RateLimitConfig(20, 3600, RateLimitKeyType.IP)
     );
 
-    private static final RateLimitConfig DEFAULT_CONFIG = new RateLimitConfig(200, 60, RateLimitKeyType.USER);
+    private static final RateLimitConfig DEFAULT_READ_CONFIG =
+        new RateLimitConfig(100, 60, RateLimitKeyType.USER);
+    
+    private static final RateLimitConfig DEFAULT_WRITE_CONFIG =
+        new RateLimitConfig(20, 60, RateLimitKeyType.USER);
     
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
@@ -61,7 +65,7 @@ public class RateLimitFilter extends OncePerRequestFilter {
             .filter(entry -> path.startsWith(entry.getKey()))
             .map(Map.Entry::getValue)
             .findFirst()
-            .orElse(DEFAULT_CONFIG);
+            .orElse(getDefaultConfig(request));
 
         String key = generateKey(path, config.getKeyType(), request);
 
@@ -89,14 +93,37 @@ public class RateLimitFilter extends OncePerRequestFilter {
         filterChain.doFilter(request, response);
     }
 
+    private RateLimitConfig getDefaultConfig(HttpServletRequest request) {
+        String method = request.getMethod();
+        if ("GET".equalsIgnoreCase(method) || 
+            "HEAD".equalsIgnoreCase(method) || 
+            "OPTIONS".equalsIgnoreCase(method)) {
+            return DEFAULT_READ_CONFIG;
+        }
+        return DEFAULT_WRITE_CONFIG;
+    }
+
     private String generateKey(String path, RateLimitKeyType keyType, HttpServletRequest request) {
-        String identifier = switch (keyType) {
-            case IP -> getClientIp(request);
-            case USER -> getUserId(request);
-            case GLOBAL -> "global";
-        };
+        String identifier;
+        RateLimitKeyType actualKeyType = keyType;
         
-        return rateLimitService.generateKey(path, keyType, identifier);
+        if (keyType == RateLimitKeyType.USER) {
+            String userId = getUserId(request);
+            if (userId == null || "anonymous".equals(userId)) {
+                identifier = getClientIp(request);
+                actualKeyType = RateLimitKeyType.IP;
+            } else {
+                identifier = userId;
+            }
+        } else {
+            identifier = switch (keyType) {
+                case IP -> getClientIp(request);
+                case GLOBAL -> "global";
+                default -> "unknown";
+            };
+        }
+        
+        return rateLimitService.generateKey(path, actualKeyType, identifier);
     }
 
     private String getClientIp(HttpServletRequest request) {
@@ -117,19 +144,19 @@ public class RateLimitFilter extends OncePerRequestFilter {
         try {
             String authorizationHeader = request.getHeader("Authorization");
             if (authorizationHeader == null || !authorizationHeader.startsWith("Bearer ")) {
-                return "anonymous";
+                return null;
             }
             
             String token = authorizationHeader.substring(7);
 
             if (jwtUtil.isExpired(token)) {
-                return "anonymous";
+                return null; 
             }
             
             return jwtUtil.getEmail(token);
         } catch (Exception e) {
             log.debug("Failed to extract user ID from JWT token: {}", e.getMessage());
-            return "anonymous";
+            return null;
         }
     }
 }
