@@ -2,14 +2,12 @@ package com.capstone.global.ratelimit.interceptor;
 
 import com.capstone.global.jwt.JwtUtil;
 import com.capstone.global.ratelimit.annotation.RateLimit;
+import com.capstone.global.ratelimit.enums.RateLimitKeyType;
 import com.capstone.global.ratelimit.service.RateLimitService;
-import com.capstone.global.security.CustomUserDetails;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.method.HandlerMethod;
 import org.springframework.web.servlet.HandlerInterceptor;
@@ -34,21 +32,22 @@ public class RateLimitInterceptor implements HandlerInterceptor {
         
         HandlerMethod handlerMethod = (HandlerMethod) handler;
         RateLimit rateLimit = handlerMethod.getMethodAnnotation(RateLimit.class);
-
+        
         if (rateLimit == null) {
             return true;
         }
-
+        
         String path = request.getRequestURI();
         String keyPrefix = rateLimit.keyPrefix().isEmpty() ? path : rateLimit.keyPrefix();
         String identifier = getIdentifier(rateLimit.keyType(), request);
-        String key = rateLimitService.generateKey(keyPrefix, rateLimit.keyType(), identifier);
+        RateLimitKeyType actualKeyType = getActualKeyType(rateLimit.keyType(), request);
+        String key = rateLimitService.generateKey(keyPrefix, actualKeyType, identifier);
 
         if (!rateLimitService.isAllowed(key, rateLimit.limit(), rateLimit.duration())) {
             log.warn("RateLimit exceeded: path={}, key={}, limit={}/{}s", 
                 path, key, rateLimit.limit(), rateLimit.duration());
             
-            response.setStatus(429);
+            response.setStatus(429); 
             response.setContentType("application/json");
             response.setCharacterEncoding("UTF-8");
             response.getWriter().write(
@@ -67,15 +66,29 @@ public class RateLimitInterceptor implements HandlerInterceptor {
         
         return true;
     }
-
-    private String getIdentifier(com.capstone.global.ratelimit.enums.RateLimitKeyType keyType, HttpServletRequest request) {
+    private String getIdentifier(RateLimitKeyType keyType, HttpServletRequest request) {
+        if (keyType == RateLimitKeyType.USER) {
+            String userId = getUserId(request);
+            if (userId == null || "anonymous".equals(userId)) {
+                return getClientIp(request);
+            }
+            return userId;
+        }
         return switch (keyType) {
             case IP -> getClientIp(request);
-            case USER -> getUserId(request);
             case GLOBAL -> "global";
+            case USER -> getClientIp(request);
         };
     }
-
+    private RateLimitKeyType getActualKeyType(RateLimitKeyType keyType, HttpServletRequest request) {
+        if (keyType == RateLimitKeyType.USER) {
+            String userId = getUserId(request);
+            if (userId == null || "anonymous".equals(userId)) {
+                return RateLimitKeyType.IP;
+            }
+        }
+        return keyType;
+    }
     private String getClientIp(HttpServletRequest request) {
         String ip = request.getHeader("X-Forwarded-For");
         if (ip == null || ip.isEmpty() || "unknown".equalsIgnoreCase(ip)) {
@@ -89,24 +102,23 @@ public class RateLimitInterceptor implements HandlerInterceptor {
         }
         return ip;
     }
+    
 
     private String getUserId(HttpServletRequest request) {
         try {
             String authorizationHeader = request.getHeader("Authorization");
             if (authorizationHeader == null || !authorizationHeader.startsWith("Bearer ")) {
-                return "anonymous";
+                return null;
             }
-
             String token = authorizationHeader.substring(7);
 
             if (jwtUtil.isExpired(token)) {
-                return "anonymous";
+                return null;
             }
-
             return jwtUtil.getEmail(token);
         } catch (Exception e) {
             log.debug("Failed to extract user ID from JWT token: {}", e.getMessage());
-            return "anonymous";
+            return null;
         }
     }
 }
