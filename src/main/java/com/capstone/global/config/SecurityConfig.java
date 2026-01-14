@@ -6,6 +6,7 @@ import com.capstone.domain.oauth2.handler.OAuth2AuthenticationSuccessHandler;
 import com.capstone.domain.oauth2.service.CustomOAuth2UserService;
 import com.capstone.domain.user.repository.UserRepository;
 import com.capstone.global.jwt.*;
+import com.capstone.global.ratelimit.filter.RateLimitFilter;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -53,6 +54,7 @@ public class SecurityConfig {
     private final UserDetailsService userDetailsService;
     private final UserRepository userRepository;
     private final CookieUtil cookieUtil;
+    private final RateLimitFilter rateLimitFilter;
 
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration configuration) throws Exception {
@@ -102,6 +104,7 @@ public class SecurityConfig {
                                 .failureHandler(oAuth2AuthenticationFailureHandler)
                 );
         http
+                .addFilterBefore(rateLimitFilter, UsernamePasswordAuthenticationFilter.class)
                 .addFilterBefore(new JwtFilter(jwtUtil, userDetailsService), UsernamePasswordAuthenticationFilter.class)
                 .addFilterAt(new LoginFilter(authenticationManager(authenticationConfiguration), jwtUtil, cookieUtil, userRepository), UsernamePasswordAuthenticationFilter.class)
                 .addFilterBefore(new CustomLogoutFilter(jwtUtil), LogoutFilter.class);
