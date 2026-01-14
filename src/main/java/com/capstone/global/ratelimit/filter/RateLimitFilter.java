@@ -35,7 +35,15 @@ public class RateLimitFilter extends OncePerRequestFilter {
         "/v3/api-docs",
         "/api/v3/api-docs",  
         "/health",
-        "/api/health"  
+        "/api/health",
+
+        // @RateLimit 어노테이션 적용 경로
+        "/api/file/upload",
+        "/api/ai/text/correct",
+        "/api/ai/text/summarize",
+        "/api/ai/text/preview",
+        "/api/ai/text/revise",
+        "/api/v1/payment/verify"
     );
 
     private static final Map<String, RateLimitConfig> PATH_CONFIGS = Map.of(
