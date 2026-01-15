@@ -1,6 +1,5 @@
 package com.capstone.global.ratelimit.interceptor;
 
-import com.capstone.global.jwt.JwtUtil;
 import com.capstone.global.ratelimit.annotation.RateLimit;
 import com.capstone.global.ratelimit.enums.RateLimitKeyType;
 import com.capstone.global.ratelimit.service.RateLimitService;
@@ -23,7 +22,6 @@ import org.springframework.web.servlet.HandlerInterceptor;
 public class RateLimitInterceptor implements HandlerInterceptor {
     
     private final RateLimitService rateLimitService;
-    private final JwtUtil jwtUtil;
     
     @Override
     public boolean preHandle(

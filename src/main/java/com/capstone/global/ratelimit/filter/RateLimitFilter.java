@@ -1,6 +1,5 @@
 package com.capstone.global.ratelimit.filter;
 
-import com.capstone.global.jwt.JwtUtil;
 import com.capstone.global.ratelimit.config.RateLimitConfig;
 import com.capstone.global.ratelimit.enums.RateLimitKeyType;
 import com.capstone.global.ratelimit.service.RateLimitService;
@@ -15,7 +14,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.annotation.Order;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
@@ -30,7 +28,6 @@ import java.util.Map;
 public class RateLimitFilter extends OncePerRequestFilter {
     
     private final RateLimitService rateLimitService;
-    private final JwtUtil jwtUtil;
 
     private static final List<String> EXCLUDE_PATHS = List.of(
         "/actuator",
