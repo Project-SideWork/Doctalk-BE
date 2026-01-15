@@ -4,10 +4,15 @@ import com.capstone.global.jwt.JwtUtil;
 import com.capstone.global.ratelimit.annotation.RateLimit;
 import com.capstone.global.ratelimit.enums.RateLimitKeyType;
 import com.capstone.global.ratelimit.service.RateLimitService;
+import com.capstone.global.security.CustomUserDetails;
+
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.method.HandlerMethod;
 import org.springframework.web.servlet.HandlerInterceptor;
@@ -107,21 +112,18 @@ public class RateLimitInterceptor implements HandlerInterceptor {
     
 
     private String getUserId(HttpServletRequest request) {
-        try {
-            String authorizationHeader = request.getHeader("Authorization");
-            if (authorizationHeader == null || !authorizationHeader.startsWith("Bearer ")) {
-                return null;
-            }
-            String token = authorizationHeader.substring(7);
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
-            if (jwtUtil.isExpired(token)) {
-                return null;
-            }
-            return jwtUtil.getEmail(token);
-        } catch (Exception e) {
-            log.debug("Failed to extract user ID from JWT token: {}", e.getMessage());
+        if (authentication == null || !authentication.isAuthenticated()) {
             return null;
         }
+
+        Object principal = authentication.getPrincipal();
+
+        if (principal instanceof CustomUserDetails customUserDetails) {
+            return customUserDetails.getEmail();
+        }
+        return null;
     }
 }
 
