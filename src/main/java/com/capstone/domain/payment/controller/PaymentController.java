@@ -4,6 +4,8 @@ import com.capstone.docs.PaymentControllerDocs;
 import com.capstone.domain.payment.dto.PaymentRequestDto;
 import com.capstone.domain.payment.exception.InvaildPaymentException;
 import com.capstone.domain.payment.service.PaymentService;
+import com.capstone.global.ratelimit.annotation.RateLimit;
+import com.capstone.global.ratelimit.enums.RateLimitKeyType;
 import com.capstone.global.response.ApiResponse;
 import com.capstone.global.security.CustomUserDetails;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -49,6 +51,7 @@ public class PaymentController implements PaymentControllerDocs
 
 
     @PostMapping("/verify")
+    @RateLimit(limit = 10, duration = 3600, keyType = RateLimitKeyType.USER)
     public ResponseEntity<ApiResponse<?>> validateIamport(@AuthenticationPrincipal CustomUserDetails userDetails, @RequestBody PaymentRequestDto request) {
         try {
             IamportResponse<Payment> payment = iamportClient.paymentByImpUid(request.getImpUid());
