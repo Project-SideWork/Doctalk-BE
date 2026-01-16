@@ -104,8 +104,8 @@ public class SecurityConfig {
                                 .failureHandler(oAuth2AuthenticationFailureHandler)
                 );
         http
-                .addFilterBefore(rateLimitFilter, UsernamePasswordAuthenticationFilter.class)
                 .addFilterBefore(new JwtFilter(jwtUtil, userDetailsService), UsernamePasswordAuthenticationFilter.class)
+                .addFilterAfter(rateLimitFilter, JwtFilter.class)
                 .addFilterAt(new LoginFilter(authenticationManager(authenticationConfiguration), jwtUtil, cookieUtil, userRepository), UsernamePasswordAuthenticationFilter.class)
                 .addFilterBefore(new CustomLogoutFilter(jwtUtil), LogoutFilter.class);
 
