@@ -14,6 +14,7 @@ import com.capstone.global.security.CustomUserDetails;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.data.redis.core.script.DefaultRedisScript;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -52,21 +53,9 @@ public class AIService
 
     private final UserRepository userRepository;
 
-    public boolean isUsageLimitExceeded(String userEmail)
-    {
-        String key = "ai_limit:" + userEmail;
-        String value = redisTemplate.opsForValue().get(key);
-        int usageCount = value == null ? 0 : Integer.parseInt(value);
+    private final DefaultRedisScript<Long> aiLimitScript;
 
-        return usageCount >= AI_LIMIT;
-    }
 
-    private void incrementUsage(String userEmail)
-    {
-        String key = "ai_limit:" + userEmail;
-        redisTemplate.opsForValue().increment(key);
-        redisTemplate.expire(key, EXPIRATION_TIME, TimeUnit.HOURS); // 24시간 후 초기화
-    }
 
     public void checkUserMembership(String email)
     {
@@ -75,12 +64,20 @@ public class AIService
         {
             throw new UserNotFoundException();
         }
-        if(user.get().getMembership().equals(MembershipType.FREE_USER))
-        {
-            if (isUsageLimitExceeded(email)) {
-                throw new AIException(AI_LIMIT_EXCEEDED);
-            }
-            incrementUsage(email);
+        if (user.get().getMembership() != MembershipType.FREE_USER) {
+            return;
+        }
+        String key = "ai_limit:" + email;
+
+        Long result = redisTemplate.execute(
+            aiLimitScript,
+            List.of(key),
+            String.valueOf(AI_LIMIT),
+            String.valueOf(TimeUnit.HOURS.toSeconds(EXPIRATION_TIME))
+        );
+
+        if (result == null || result == -1) {
+            throw new AIException(AI_LIMIT_EXCEEDED);
         }
 
     }
