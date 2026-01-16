@@ -8,4 +8,5 @@ import java.util.List;
 public interface CustomProjectRepository {
     Project findByProjectName(String projectName);
     List<Project> findAllById(List<String> ids);
+    void addTaskIdAtomically(String projectId, String taskId);
 }
