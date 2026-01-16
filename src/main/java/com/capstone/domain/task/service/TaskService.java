@@ -32,7 +32,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
@@ -49,14 +48,14 @@ public class TaskService {
     private final TaskUtil taskUtil;
 
 
+    @Transactional
     public Task saveTask(TaskRequest taskDto, CustomUserDetails userDetails){
         validateStatus(taskDto.status());
         Project project = projectRepository.findById(taskDto.projectId()).orElseThrow(
                 ProjectNotFoundException::new
         );
         Task saved = taskRepository.save(taskDto.toTask());
-        project.addNewTaskId(saved.getId());
-        projectRepository.save(project);
+        projectRepository.addTaskIdAtomically(project.getId(), saved.getId());
         kafkaProducerService.sendEvent(KafkaEventTopic.TASK_CREATED,TaskChangePayload.from(saved, null, null, userDetails.getEmail(), taskDto.editors()));
 
         return saved;
