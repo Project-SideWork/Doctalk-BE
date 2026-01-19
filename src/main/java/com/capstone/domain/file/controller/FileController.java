@@ -40,7 +40,7 @@ public class FileController implements FileControllerDocs {
         return fileService.download(customUserDetails,fileId);
     }
 
-    @DeleteMapping("delete")
+    @DeleteMapping("/delete")
     public ResponseEntity<ApiResponse<String>> deleteFile(@AuthenticationPrincipal CustomUserDetails customUserDetails,@RequestParam("fileId") String fileId){
         return ResponseEntity.ok(ApiResponse.onSuccess(fileService.delete(customUserDetails,fileId)));
     }
