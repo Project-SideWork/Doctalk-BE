@@ -13,6 +13,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.bson.types.ObjectId;
 import org.springframework.core.io.Resource;
+import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.gridfs.GridFsResource;
@@ -34,6 +35,7 @@ import java.nio.charset.StandardCharsets;
 @Slf4j
 public class FileService {
     private final GridFsTemplate gridFsTemplate;
+    private final MongoTemplate mongoTemplate;
 
     public FileResponse upload(CustomUserDetails customUserDetails,MultipartFile file) throws IOException {
 
@@ -121,11 +123,26 @@ public class FileService {
         if (customUserDetails == null) {
             throw new GlobalException(ErrorStatus.USER_NOT_FOUND);
         }
+        if (fileId == null || fileId.isEmpty()) {
+            return null;
+        }
+        ObjectId objectId = new ObjectId(fileId);
         GridFSFile file = gridFsTemplate.findOne(
-                new Query(Criteria.where("_id").is(fileId))
+                new Query(Criteria.where("_id").is(objectId))
         );
-        gridFsTemplate.delete(Query.query(Criteria.where("_id").is(fileId)));
-        return file.getFilename();
+        if (file == null) {
+            return null;
+        }
+        String filename = file.getFilename();
+        
+        gridFsTemplate.delete(Query.query(Criteria.where("_id").is(objectId)));
+        
+        mongoTemplate.remove(
+                Query.query(Criteria.where("files_id").is(objectId)),
+                "fs.chunks"
+        );
+        
+        return filename;
     }
 
     public ResponseEntity<Resource> getFile(CustomUserDetails customUserDetails,String fileId) {

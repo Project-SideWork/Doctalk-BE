@@ -1,5 +1,6 @@
 package com.capstone.domain.project.service;
 
+import com.capstone.domain.file.service.FileService;
 import com.capstone.domain.project.dto.request.ProjectUpdateRequest;
 import com.capstone.domain.project.dto.response.ProjectCoworkerDto;
 import com.capstone.domain.project.dto.response.ProjectResponse;
@@ -41,6 +42,7 @@ public class ProjectService {
     private final UserService userService;
     private final KafkaProducerService kafkaProducerService;
     private final ProjectUserRepository projectUserRepository;
+    private final FileService fileService;
 
 
     @Transactional
@@ -95,6 +97,10 @@ public class ProjectService {
         ProjectChangeDetail beforeUpdate = ProjectChangeDetail.from(project);
 
         if(projectUpdateRequest.imageId() != null){
+            String oldImageId = project.getImageId();
+            if (oldImageId != null && !oldImageId.equals(projectUpdateRequest.imageId())) {
+                fileService.delete(customUserDetails, oldImageId);
+            }
             project.updateProjectInfoWithImage(projectUpdateRequest.projectName(), projectUpdateRequest.description(),projectUpdateRequest.imageId());
         }
         else {
