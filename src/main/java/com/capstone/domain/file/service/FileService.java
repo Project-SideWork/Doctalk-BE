@@ -28,7 +28,8 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
-
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
 
 @Service
 @RequiredArgsConstructor
@@ -84,6 +85,9 @@ public class FileService {
         FileMagicType detectedType = FileMagicType.detect(header);
         if (detectedType == null || !detectedType.matchesContentType(contentType)) {
             throw new GlobalException(ErrorStatus.FILE_NOT_SUPPORTED);
+        }
+        if (detectedType == FileMagicType.ZIP) {
+            validateZipOoxml(file, contentType);
         }
     }
 
@@ -164,6 +168,38 @@ public class FileService {
                 .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + gridFsFile.getFilename() + "\"")
                 .body(resource);
     }
+
+    private void validateZipOoxml(MultipartFile file, String contentType) {
+        try (ZipInputStream zis = new ZipInputStream(file.getInputStream())) {
+            ZipEntry entry;
+            boolean valid = false;
+
+            while ((entry = zis.getNextEntry()) != null) {
+                String name = entry.getName();
+
+                if (contentType.equals(
+                    "application/vnd.openxmlformats-officedocument.wordprocessingml.document")
+                    && name.startsWith("word/")) {
+                    valid = true;
+                    break;
+                }
+
+                if (contentType.equals(
+                    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+                    && name.startsWith("xl/")) {
+                    valid = true;
+                    break;
+                }
+            }
+
+            if (!valid) {
+                throw new GlobalException(ErrorStatus.FILE_NOT_SUPPORTED);
+            }
+        } catch (IOException e) {
+            throw new GlobalException(ErrorStatus.FILE_NOT_SUPPORTED);
+        }
+    }
+
 
 
 }
