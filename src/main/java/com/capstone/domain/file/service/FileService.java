@@ -1,5 +1,6 @@
 package com.capstone.domain.file.service;
 
+import com.capstone.domain.file.common.FileMagicType;
 import com.capstone.domain.file.common.FileMessages;
 import com.capstone.domain.file.common.FileTypes;
 import com.capstone.domain.file.dto.FileResponse;
@@ -31,6 +32,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 
 
@@ -47,24 +49,46 @@ public class FileService {
             throw new GlobalException(ErrorStatus.USER_NOT_FOUND);
         }
 
-        if (!FileTypes.SUPPORTED_TYPES(file.getContentType())) {
-            throw new GlobalException(ErrorStatus.FILE_NOT_SUPPORTED);
-        }
-
         if (file.isEmpty()) {
             throw new GlobalException(ErrorStatus.FILE_EMPTY);
         }
 
+        String contentType = file.getContentType();
+        if (!FileTypes.SUPPORTED_TYPES(contentType)) {
+            throw new GlobalException(ErrorStatus.FILE_NOT_SUPPORTED);
+        }
+        log.info("<UNK> <UNK> <UNK> <UNK> <UNK> <UNK> <UNK> <UNK> <UNK>");
+        validateFileSignature(file, contentType);
+        log.info("<UNK> <UNK> <UNK> <UNK> <UNK> <UNK> <UNK> <UNK> <UNK>22222222222");
         // GridFS에 파일 저장
         ObjectId objectId = gridFsTemplate.store(
                 file.getInputStream(),
                 file.getOriginalFilename(),
-                file.getContentType()
+                contentType
         );
 
-
-
         return FileResponse.from(objectId.toHexString(),file.getOriginalFilename());
+    }
+
+    private void validateFileSignature(MultipartFile file, String contentType) throws IOException
+    {
+
+        if ("text/plain".equals(contentType)) {
+            return;
+        }
+
+        byte[] header = new byte[4];
+        try (InputStream inputStream = file.getInputStream()) {
+            int bytesRead = inputStream.read(header);
+            if (bytesRead < 4) {
+                throw new GlobalException(ErrorStatus.FILE_NOT_SUPPORTED);
+            }
+        }
+
+        FileMagicType detectedType = FileMagicType.detect(header);
+        if (detectedType == null || !detectedType.matchesContentType(contentType)) {
+            throw new GlobalException(ErrorStatus.FILE_NOT_SUPPORTED);
+        }
     }
 
     public ResponseEntity<Resource> download(CustomUserDetails customUserDetails,String fileId) {
