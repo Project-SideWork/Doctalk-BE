@@ -11,6 +11,7 @@ import com.capstone.domain.task.service.TaskService;
 import com.capstone.domain.task.util.VersionUtil;
 import com.capstone.global.response.exception.GlobalException;
 import com.capstone.global.response.status.ErrorStatus;
+import com.capstone.global.security.CustomUserDetails;
 import com.mongodb.client.gridfs.model.GridFSFile;
 
 import lombok.RequiredArgsConstructor;
@@ -40,7 +41,11 @@ public class FileService {
     private final GridFsTemplate gridFsTemplate;
     private final TaskRepository taskRepository;
 
-    public FileResponse upload(MultipartFile file) throws IOException {
+    public FileResponse upload(CustomUserDetails customUserDetails,MultipartFile file) throws IOException {
+
+        if (customUserDetails == null) {
+            throw new GlobalException(ErrorStatus.USER_NOT_FOUND);
+        }
 
         if (!FileTypes.SUPPORTED_TYPES(file.getContentType())) {
             throw new GlobalException(ErrorStatus.FILE_NOT_SUPPORTED);
@@ -62,7 +67,10 @@ public class FileService {
         return FileResponse.from(objectId.toHexString(),file.getOriginalFilename());
     }
 
-    public ResponseEntity<Resource> download(String fileId) {
+    public ResponseEntity<Resource> download(CustomUserDetails customUserDetails,String fileId) {
+        if (customUserDetails == null) {
+            throw new GlobalException(ErrorStatus.USER_NOT_FOUND);
+        }
         GridFSFile file = gridFsTemplate.findOne(
                 new Query(Criteria.where("_id").is(fileId))
         );
@@ -91,7 +99,10 @@ public class FileService {
                 .body(resource);
     }
 
-    public String delete(String fileId) {
+    public String delete(CustomUserDetails customUserDetails,String fileId) {
+        if (customUserDetails == null) {
+            throw new GlobalException(ErrorStatus.USER_NOT_FOUND);
+        }
         GridFSFile file = gridFsTemplate.findOne(
                 new Query(Criteria.where("_id").is(fileId))
         );
@@ -99,7 +110,10 @@ public class FileService {
         return file.getFilename();
     }
 
-    public ResponseEntity<Resource> getFile(String fileId) {
+    public ResponseEntity<Resource> getFile(CustomUserDetails customUserDetails,String fileId) {
+        if (customUserDetails == null) {
+            throw new GlobalException(ErrorStatus.USER_NOT_FOUND);
+        }
         GridFSFile gridFsFile = gridFsTemplate.findOne(
                 new Query(Criteria.where("_id").is(new ObjectId(fileId)))
         );
