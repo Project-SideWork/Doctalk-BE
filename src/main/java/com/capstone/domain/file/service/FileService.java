@@ -2,6 +2,7 @@ package com.capstone.domain.file.service;
 
 import com.capstone.domain.file.common.FileMagicType;
 import com.capstone.domain.file.common.FileTypes;
+import com.capstone.domain.file.common.FilenameSanitizer;
 import com.capstone.domain.file.dto.FileResponse;
 import com.capstone.global.response.exception.GlobalException;
 import com.capstone.global.response.status.ErrorStatus;
@@ -49,10 +50,14 @@ public class FileService {
             throw new GlobalException(ErrorStatus.FILE_NOT_SUPPORTED);
         }
         validateFileSignature(file, contentType);
+
+        String sanitizedFilename = FilenameSanitizer.sanitize(file.getOriginalFilename());
+
+
         // GridFS에 파일 저장
         ObjectId objectId = gridFsTemplate.store(
                 file.getInputStream(),
-                file.getOriginalFilename(),
+                sanitizedFilename,
                 contentType
         );
 
