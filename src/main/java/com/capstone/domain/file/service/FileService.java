@@ -48,9 +48,7 @@ public class FileService {
         if (!FileTypes.SUPPORTED_TYPES(contentType)) {
             throw new GlobalException(ErrorStatus.FILE_NOT_SUPPORTED);
         }
-        log.info("<UNK> <UNK> <UNK> <UNK> <UNK> <UNK> <UNK> <UNK> <UNK>");
         validateFileSignature(file, contentType);
-        log.info("<UNK> <UNK> <UNK> <UNK> <UNK> <UNK> <UNK> <UNK> <UNK>22222222222");
         // GridFS에 파일 저장
         ObjectId objectId = gridFsTemplate.store(
                 file.getInputStream(),
