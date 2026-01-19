@@ -1,15 +1,8 @@
 package com.capstone.domain.file.service;
 
 import com.capstone.domain.file.common.FileMagicType;
-import com.capstone.domain.file.common.FileMessages;
 import com.capstone.domain.file.common.FileTypes;
 import com.capstone.domain.file.dto.FileResponse;
-import com.capstone.domain.file.exception.InvalidFileException;
-import com.capstone.domain.task.entity.Task;
-import com.capstone.domain.task.entity.Version;
-import com.capstone.domain.task.repository.TaskRepository;
-import com.capstone.domain.task.service.TaskService;
-import com.capstone.domain.task.util.VersionUtil;
 import com.capstone.global.response.exception.GlobalException;
 import com.capstone.global.response.status.ErrorStatus;
 import com.capstone.global.security.CustomUserDetails;
@@ -30,7 +23,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
@@ -41,7 +33,6 @@ import java.nio.charset.StandardCharsets;
 @Slf4j
 public class FileService {
     private final GridFsTemplate gridFsTemplate;
-    private final TaskRepository taskRepository;
 
     public FileResponse upload(CustomUserDetails customUserDetails,MultipartFile file) throws IOException {
 
