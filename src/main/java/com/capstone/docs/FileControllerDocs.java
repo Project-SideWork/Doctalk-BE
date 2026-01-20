@@ -1,6 +1,8 @@
 package com.capstone.docs;
 
 import com.capstone.domain.file.dto.FileResponse;
+import com.capstone.global.security.CustomUserDetails;
+
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
@@ -9,6 +11,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.core.io.Resource;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
@@ -39,6 +42,7 @@ public interface FileControllerDocs {
             )
     })
     ResponseEntity<com.capstone.global.response.ApiResponse<FileResponse>> uploadFile(
+        @AuthenticationPrincipal CustomUserDetails customUserDetails,
             @RequestParam("file") MultipartFile file) throws Exception;
 
     @Operation(description = "파일 다운로드")
@@ -61,7 +65,7 @@ public interface FileControllerDocs {
                     )
             )
     })
-    ResponseEntity<Resource> downloadFile(@RequestParam("fileId") String fileId) throws IOException;
+    ResponseEntity<Resource> downloadFile(@AuthenticationPrincipal CustomUserDetails customUserDetails,@RequestParam("fileId") String fileId) throws IOException;
 
     @Operation(description = "파일 삭제")
     @ApiResponses(value = {
@@ -83,5 +87,5 @@ public interface FileControllerDocs {
                     )
             )
     })
-    ResponseEntity<com.capstone.global.response.ApiResponse<String>> deleteFile(@RequestParam("fileId") String fileId);
+    ResponseEntity<com.capstone.global.response.ApiResponse<String>> deleteFile(@AuthenticationPrincipal CustomUserDetails customUserDetails,@RequestParam("fileId") String fileId);
 }
