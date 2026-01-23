@@ -326,7 +326,7 @@ public class GitHubService {
         return acc;
     }
 
-    public WeeklyDashboardResponse aggregateMyGithubStatsByProject(String projectId, String username) {
+    public List<ContributionMetricWithShareDto> aggregateMyGithubStatsByProject(String projectId, String username) {
         Project project = projectRepository.findById(projectId).orElseThrow();
 
         int totIssues = 0, totPrs = 0;
@@ -348,12 +348,10 @@ public class GitHubService {
             myPrs      += searchIssuesPrCountOrg(orgName, "is:pr", author);
         }
 
-        List<WeeklyMetricWithShareDto> metrics = List.of(
-                WeeklyMetricWithShareDto.of("이슈 생성", totIssues, myIssues, pct(myIssues, totIssues)),
-                WeeklyMetricWithShareDto.of("PR 생성", totPrs, myPrs, pct(myPrs, totPrs))
+        return List.of(
+                ContributionMetricWithShareDto.of("이슈 생성", totIssues, myIssues, pct(myIssues, totIssues)),
+                ContributionMetricWithShareDto.of("PR 생성", totPrs, myPrs, pct(myPrs, totPrs))
         );
-
-        return new WeeklyDashboardResponse(metrics);
     }
 
     private int searchIssuesPrCountOrg(String org, String kindQualifier, String extra) {

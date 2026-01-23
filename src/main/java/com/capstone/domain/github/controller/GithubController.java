@@ -127,7 +127,7 @@ public class GithubController implements GithubControllerDocs {
      * @return
      */
     @GetMapping("/stat/{projectId}")
-    public ResponseEntity<ApiResponse<WeeklyDashboardResponse>> getMyProjectGithubStats(
+    public ResponseEntity<ApiResponse<List<ContributionMetricWithShareDto>>> getMyProjectGithubStats(
             @AuthenticationPrincipal CustomUserDetails customUserDetails,
             @PathVariable String projectId) {
         return ResponseEntity.ok(ApiResponse.onSuccess(gitHubService.aggregateMyGithubStatsByProject(projectId, "kamillcream")));

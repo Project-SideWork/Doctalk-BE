@@ -80,7 +80,7 @@ public interface GithubControllerDocs {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "조회 성공"),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "인증 실패")
     })
-    ResponseEntity<ApiResponse<WeeklyDashboardResponse>> getMyProjectGithubStats(
+    ResponseEntity<ApiResponse<List<ContributionMetricWithShareDto>>> getMyProjectGithubStats(
             @AuthenticationPrincipal CustomUserDetails customUserDetails,
             @PathVariable String projectId
     );
