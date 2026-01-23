@@ -1,7 +1,7 @@
 spring:
   config:
     activate:
-      on-profile: prod
+      on-profile: dev
 
   autoconfigure:
     exclude:
@@ -10,10 +10,9 @@ spring:
     type: redis
   data:
     mongodb:
-      uri: mongodb://${MONGO_USERNAME}:${MONGO_PASSWORD}@${MONGO_HOSTNAME}:${MONGO_PORT}/${MONGO_DATABASE}?authSource=admin
+      uri: mongodb://localhost:27017/capstone
     redis:
-      url: redis://${REDIS_USERNAME}:${REDIS_PASSWORD}@${REDIS_HOSTNAME}:${REDIS_PORT}
-      timeout: 6000ms
+      url: redis://default:qkrwlsdud1121!@localhost:6379
 
   servlet:
     multipart:
@@ -21,7 +20,7 @@ spring:
       max-request-size: 50MB
 
   kafka:
-    bootstrap-servers: ${KAFKA_HOST}:9092
+    bootstrap-servers: localhost:9092
     topics:
       task-created: task.created
       task-updated: task.updated
@@ -110,16 +109,18 @@ spring:
       debug: true
 
 
-github:
-  api-url: https://api.github.com
-  token: ${PAT_TOKEN}
-
-
 jwt:
   issuer: project.doctalk@gmail.com
   secret: "jfsgkhdsjkweoiruwqejkrfbhnsadkjlfghbwerqewrsdfgdsfagbdf"
   access-expiration: 3600
   refresh-expiration: 8640
+
+
+
+github:
+  api-url: https://api.github.com
+  token: ${PAT_TOKEN}
+
 
 server:
   port: 8080
@@ -154,10 +155,4 @@ IMP_API_SECRET: ${IMP_API_SECRET}
 springdoc:
   default-produces-media-type: application/json
   override-with-generic-response: false
-
-management:
-  endpoints:
-    web:
-      exposure:
-        include: health
 
