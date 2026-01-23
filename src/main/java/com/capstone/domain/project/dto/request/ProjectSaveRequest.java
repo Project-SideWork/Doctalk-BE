@@ -1,13 +1,10 @@
 package com.capstone.domain.project.dto.request;
 
-import com.capstone.domain.project.entity.Project;
 import jakarta.annotation.Nullable;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 public record ProjectSaveRequest(
         @Nullable
@@ -19,14 +16,6 @@ public record ProjectSaveRequest(
         @Size(min = 1)
         String description,
         @Nullable
-        List<String> invitedEmails
-){
-    public Project toProject(){
-        return Project.builder()
-                .projectName(this.projectName())
-                .description(this.description())
-                .taskIds(new ArrayList<>())
-                .documentIds(new ArrayList<>())
-                .build();
-    }
-}
+        List<String> invitedEmails,
+        List<ProjectGithubInfo> githubInfos
+){}
