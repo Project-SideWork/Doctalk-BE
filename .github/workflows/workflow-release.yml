@@ -102,6 +102,7 @@ jobs:
                   MONGO_PORT=${{ secrets.MONGO_PORT }}
                   MONGO_DATABASE=${{ secrets.MONGO_DATABASE }}
                   KAFKA_HOST=${{ secrets.KAFKA_HOST }}
+                  PAT_TOKEN=${{ secrets.PAT_TOKEN }}
                   EOF
                   
                   scp myapp.tar .env.production app:/home/ubuntu/app/
