@@ -9,7 +9,6 @@ import com.capstone.domain.github.dto.response.GithubPrResponse;
 import com.capstone.domain.github.dto.response.ReviewCommentResponse;
 import com.capstone.domain.project.entity.Project;
 import com.capstone.domain.project.entity.ProjectOrganization;
-import com.capstone.domain.project.repository.ProjectOrganizationRepository;
 import com.capstone.domain.project.repository.ProjectRepository;
 import com.capstone.global.security.CustomUserDetails;
 import lombok.RequiredArgsConstructor;
@@ -28,7 +27,6 @@ import static com.capstone.domain.github.util.HttpSetter.githubEntity;
 @Slf4j
 public class GitHubService {
     private final ProjectRepository projectRepository;
-    private final ProjectOrganizationRepository teamOrgRepository;
 
     @Value("${github.api-url}")
     private String apiUrl;
