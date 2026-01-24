@@ -46,10 +46,11 @@ public class ProjectService {
 
     @Transactional
     public Project saveProject(CustomUserDetails customUserDetails, ProjectSaveRequest projectSaveRequest){
-        List<ProjectOrganization> projectOrganizations = projectSaveRequest.githubInfos()
-                .stream().map(
-                        info -> ProjectOrganization.create(info.githubOrgName(), info.orgRepos())
-                ).toList();
+        List<ProjectOrganization> projectOrganizations = Optional.ofNullable(projectSaveRequest.githubInfos())
+                .orElse(List.of())
+                .stream()
+                .map(info -> ProjectOrganization.create(info.githubOrgName(), info.orgRepos()))
+                .toList();
 
         Project project = projectRepository.save(Project.create(projectSaveRequest.projectName()
                 , projectSaveRequest.description(), projectOrganizations));
