@@ -25,7 +25,7 @@ import java.util.List;
 @Tag(name = "프로젝트 관련 API")
 public interface ProjectControllerDocs {
 
-    @Operation(description = "신규 프로젝트 생성")
+    @Operation(summary = "✅ RequestBody 변경 ✅", description = "신규 프로젝트 생성")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "생성 성공"),
             @ApiResponse(

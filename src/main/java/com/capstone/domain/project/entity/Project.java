@@ -20,8 +20,17 @@ public class Project extends BaseDocument {
     private String projectName;
     private String imageId;
     private String description;
-    private List<String> taskIds;
-    private List<String> documentIds;
+    private List<String> taskIds = new ArrayList<>();
+    private List<String> documentIds = new ArrayList<>();
+    private List<ProjectOrganization> projectOrganizations;
+
+    public static Project create(String projectName, String description, List<ProjectOrganization> projectOrganizations) {
+        return Project.builder()
+                .projectName(projectName)
+                .description(description)
+                .projectOrganizations(projectOrganizations)
+                .build();
+    }
 
     public void updateProjectInfoWithImage(String projectName, String description,String imageId) {
         this.projectName = projectName;
@@ -34,12 +43,13 @@ public class Project extends BaseDocument {
         this.description = description;
     }
 
-    public void addNewTaskId(String taskId){
-        if(this.taskIds == null) {
-            this.taskIds = new ArrayList<>();
+
+    public void addProjectOrganization(ProjectOrganization organization){
+        if(this.projectOrganizations == null) {
+            this.projectOrganizations = new ArrayList<>();
         }
-        if (!this.taskIds.contains(taskId)) {
-            this.taskIds.add(taskId);
+        if (!this.projectOrganizations.contains(organization)) {
+            this.projectOrganizations.add(organization);
         }
     }
 }

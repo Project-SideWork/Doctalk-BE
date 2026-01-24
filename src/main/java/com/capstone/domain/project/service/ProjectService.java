@@ -6,6 +6,7 @@ import com.capstone.domain.project.dto.response.ProjectCoworkerDto;
 import com.capstone.domain.project.dto.response.ProjectResponse;
 import com.capstone.domain.project.dto.request.ProjectSaveRequest;
 import com.capstone.domain.project.entity.Project;
+import com.capstone.domain.project.entity.ProjectOrganization;
 import com.capstone.domain.project.repository.ProjectRepository;
 
 import com.capstone.domain.user.entity.ProjectUser;
@@ -47,7 +48,14 @@ public class ProjectService {
 
     @Transactional
     public Project saveProject(CustomUserDetails customUserDetails, ProjectSaveRequest projectSaveRequest){
-        Project project = projectRepository.save(projectSaveRequest.toProject());
+        List<ProjectOrganization> projectOrganizations = Optional.ofNullable(projectSaveRequest.githubInfos())
+                .orElse(List.of())
+                .stream()
+                .map(info -> ProjectOrganization.create(info.githubOrgName(), info.orgRepos()))
+                .toList();
+
+        Project project = projectRepository.save(Project.create(projectSaveRequest.projectName()
+                , projectSaveRequest.description(), projectOrganizations));
         saveProjectUsers(projectSaveRequest, project, customUserDetails.getEmail());
         return project;
     }
