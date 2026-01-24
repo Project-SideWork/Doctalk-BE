@@ -230,7 +230,7 @@ public class GitHubService {
         return Arrays.asList(response.getBody());
     }
 
-    public GithubPrResponse fetchMyPullRequestsInProject(CustomUserDetails userDetails, String projectId) {
+    public GithubPrResponse fetchReviewRequestPullRequestsInProject(CustomUserDetails userDetails, String projectId) {
         Project project = projectRepository.findById(projectId).orElseThrow();
 
         List<GitHubPullRequestDto> all = new ArrayList<>();
@@ -238,14 +238,14 @@ public class GitHubService {
         for (ProjectOrganization org : Optional.ofNullable(project.getProjectOrganizations()).orElse(Collections.emptyList())) {
             String organization = org.getOrgName();
             for (String repoName : org.getProjectRepos()) {
-                all.addAll(fetchPullRequests(organization, repoName, "kamillcream"));
+                all.addAll(fetchReviewRequestedPullRequests(organization, repoName, "kamillcream"));
             }
         }
 
         return new GithubPrResponse(all.size(), all);
     }
 
-    private List<GitHubPullRequestDto> fetchPullRequests(String organization, String repo, String username) {
+    private List<GitHubPullRequestDto> fetchReviewRequestedPullRequests(String organization, String repo, String username) {
         String url = String.format(
                 "%s/search/issues?q=type:pr+state:open+repo:%s/%s+review-requested:%s",
                 apiUrl, organization, repo, username
@@ -440,12 +440,17 @@ public class GitHubService {
                             case "APPROVED":
                                 stat.setApproved(stat.getApproved() + 1);
                                 approved++;
+                                break;
                             case "CHANGES_REQUESTED":
                                 stat.setChangesRequested(stat.getChangesRequested() + 1);
                                 changesRequested++;
+                                break;
                             case "COMMENTED":
-                                stat.setCommented(stat.getChangesRequested() + 1);
+                                stat.setCommented(stat.getCommented() + 1);
                                 commented++;
+                                break;
+                            default:
+                                break;
                         }
                         statsMap.put(reviewer, stat);
                     }
