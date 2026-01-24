@@ -56,12 +56,12 @@ public interface GithubControllerDocs {
             @RequestParam String repo
     );
 
-    @Operation(description = "내가 생성한 PR 목록 조회 (프로젝트 기준)")
+    @Operation(description = "나에게 리뷰를 요청한 PR 목록 조회 (프로젝트 기준)")
     @ApiResponses({
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "조회 성공"),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "인증 실패")
     })
-    ResponseEntity<ApiResponse<GithubPrResponse>> getMyProjectPullRequests(
+    ResponseEntity<ApiResponse<GithubPrResponse>> getReviewRequestedProjectPullRequests(
             @AuthenticationPrincipal CustomUserDetails userDetails,
             @PathVariable String projectId
     );

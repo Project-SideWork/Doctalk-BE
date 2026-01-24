@@ -103,10 +103,10 @@ public class GithubController implements GithubControllerDocs {
      * @param projectId
      * @return
      */
-    @GetMapping("/prs/my/{projectId}")
-    public ResponseEntity<ApiResponse<GithubPrResponse>> getMyProjectPullRequests(
+    @GetMapping("/prs/requested/{projectId}")
+    public ResponseEntity<ApiResponse<GithubPrResponse>> getReviewRequestedProjectPullRequests(
             @AuthenticationPrincipal CustomUserDetails userDetails,  @PathVariable String projectId) {
-        return ResponseEntity.ok(ApiResponse.onSuccess(gitHubService.fetchMyPullRequestsInProject(userDetails, projectId)));
+        return ResponseEntity.ok(ApiResponse.onSuccess(gitHubService.fetchReviewRequestPullRequestsInProject(userDetails, projectId)));
     }
 
     /**
