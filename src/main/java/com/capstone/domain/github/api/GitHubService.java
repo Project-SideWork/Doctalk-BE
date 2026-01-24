@@ -34,10 +34,11 @@ public class GitHubService {
     @Value("${github.token}")
     private String token;
 
-    private final RestTemplate restTemplate = new RestTemplate();
+    private final RestTemplate restTemplate;
 
     public void createOrganizationRepositoryOnGithub(OrgRepoRequest request) {
-        String url = String.format("https://api.github.com/orgs/%s/repos", request.orgName());
+        String url = String.format("%s/orgs/%s/repos", apiUrl, request.orgName());
+
         Map<String, Object> body = new HashMap<>();
         body.put("name", request.repoName());
         body.put("private", request.isPrivate());
@@ -112,7 +113,7 @@ public class GitHubService {
 //    }
 
     public List<GitHubOrgDto> fetchMyGithubOrganizations() {
-        String url = String.format("https://api.github.com/user/orgs");
+        String url = String.format("%s/user/orgs", apiUrl);
 
         ResponseEntity<GitHubOrgDto[]> response = restTemplate.exchange(
                 url,
@@ -227,7 +228,10 @@ public class GitHubService {
                 GitHubPullRequestDto[].class
         );
 
-        return Arrays.asList(response.getBody());
+        return Optional.ofNullable(response.getBody())
+                .map(Arrays::asList)
+                .orElseGet(Collections::emptyList);
+
     }
 
     public GithubPrResponse fetchReviewRequestPullRequestsInProject(CustomUserDetails userDetails, String projectId) {
@@ -269,7 +273,8 @@ public class GitHubService {
         Project project = projectRepository.findById(projectId).orElseThrow();
 
         List<GitHubOrgEventDto> all = new ArrayList<>();
-        List<ProjectOrganization> orgs = project.getProjectOrganizations();
+        List<ProjectOrganization> orgs = Optional.ofNullable(project.getProjectOrganizations()).orElse(Collections.emptyList());
+
         List<String> orgNames = orgs.stream().map(
                 ProjectOrganization::getOrgName
         ).toList();
@@ -332,7 +337,7 @@ public class GitHubService {
         int totIssues = 0, totPrs = 0;
         int myIssues = 0, myPrs = 0;
 
-        List<ProjectOrganization> orgs = project.getProjectOrganizations();
+        List<ProjectOrganization> orgs = Optional.ofNullable(project.getProjectOrganizations()).orElse(Collections.emptyList());
         List<String> orgNames = orgs.stream().map(
                 ProjectOrganization::getOrgName
         ).toList();
@@ -375,7 +380,7 @@ public class GitHubService {
 
 
     public List<ReviewCommentResponse> fetchReviewCommentsFromRepository(String organization, String repo) {
-        String url = String.format("https://api.github.com/repos/%s/%s/pulls/comments", organization, repo);
+        String url = String.format("%s/repos/%s/%s/pulls/comments", apiUrl, organization, repo);
 
         try {
             ResponseEntity<GitHubReviewCommentDto[]> response = restTemplate.exchange(
@@ -418,8 +423,10 @@ public class GitHubService {
         int changesRequested = 0;
         int commented = 0;
 
-        for (int pr = 1; pr <= prCount; pr++) {
-            String url = String.format("https://api.github.com/repos/%s/%s/pulls/%d/reviews", organization, repo, pr);
+        List<GitHubPullRequestDto> pullRequests = fetchPullRequestsFromRepository(organization, repo);
+
+        for (GitHubPullRequestDto pr : pullRequests) {
+            String url = String.format("%s/repos/%s/%s/pulls/%d/reviews", apiUrl, organization, repo, pr);
 
             try {
                 ResponseEntity<GitHubReviewDto[]> response = restTemplate.exchange(

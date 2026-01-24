@@ -98,7 +98,7 @@ public class GithubController implements GithubControllerDocs {
     }
 
     /**
-     * 참여 중인 프로젝트의 레포지토리에서 내가 올린 PRs 반환
+     * 참여 중인 프로젝트의 레포지토리에서 나에게 리뷰를 요청한 PRs 반환
      * @param userDetails
      * @param projectId
      * @return
