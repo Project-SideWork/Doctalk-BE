@@ -122,7 +122,9 @@ public class GitHubService {
                 GitHubOrgDto[].class
         );
 
-        return Arrays.asList(Objects.requireNonNull(response.getBody()));
+        return Optional.ofNullable(response.getBody())
+                .map(Arrays::asList)
+                .orElseGet(Collections::emptyList);
     }
 
     public GithubIssueResponse fetchGithubIssuesByProject(String teamId) {
