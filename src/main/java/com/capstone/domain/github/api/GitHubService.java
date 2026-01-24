@@ -435,7 +435,9 @@ public class GitHubService {
                         url, HttpMethod.GET, githubEntity(token), GitHubReviewDto[].class
                 );
 
-                for (GitHubReviewDto review : response.getBody()) {
+                GitHubReviewDto[] reviews = response.getBody();
+                if (reviews == null) continue;
+                for (GitHubReviewDto review : reviews) {
                     if (review.getUser() == null ) continue;
                     String reviewer = review.getUser().getLogin();
                     String avatarUrl = review.getUser().getAvatarUrl();
