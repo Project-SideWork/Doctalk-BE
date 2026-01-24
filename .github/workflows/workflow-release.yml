@@ -103,6 +103,7 @@ jobs:
                   MONGO_DATABASE=${{ secrets.MONGO_DATABASE }}
                   KAFKA_HOST=${{ secrets.KAFKA_HOST }}
                   PAT_TOKEN=${{ secrets.PAT_TOKEN }}
+                  JWT_SECRET=${{ secrets.JWT_SECRET }}
                   EOF
                   
                   scp myapp.tar .env.production app:/home/ubuntu/app/
