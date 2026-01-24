@@ -428,7 +428,7 @@ public class GitHubService {
         List<GitHubPullRequestDto> pullRequests = fetchPullRequestsFromRepository(organization, repo);
 
         for (GitHubPullRequestDto pr : pullRequests) {
-            String url = String.format("%s/repos/%s/%s/pulls/%d/reviews", apiUrl, organization, repo, pr);
+            String url = String.format("%s/repos/%s/%s/pulls/%d/reviews", apiUrl, organization, repo, pr.getNumber());
 
             try {
                 ResponseEntity<GitHubReviewDto[]> response = restTemplate.exchange(
