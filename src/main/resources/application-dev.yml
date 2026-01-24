@@ -111,7 +111,7 @@ spring:
 
 jwt:
   issuer: project.doctalk@gmail.com
-  secret: "jfsgkhdsjkweoiruwqejkrfbhnsadkjlfghbwerqewrsdfgdsfagbdf"
+  secret: ${JWT_SECRET}
   access-expiration: 3600
   refresh-expiration: 8640
 

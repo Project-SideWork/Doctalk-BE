@@ -1,8 +1,4 @@
 spring:
-  config:
-    activate:
-      on-profile: prod
-
   autoconfigure:
     exclude:
       - org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration
@@ -117,7 +113,7 @@ github:
 
 jwt:
   issuer: project.doctalk@gmail.com
-  secret: "jfsgkhdsjkweoiruwqejkrfbhnsadkjlfghbwerqewrsdfgdsfagbdf"
+  secret: ${JWT_SECRET}
   access-expiration: 3600
   refresh-expiration: 8640
 
