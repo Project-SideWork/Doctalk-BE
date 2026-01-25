@@ -100,7 +100,8 @@ public class ProjectUserService {
     }
 
     private String generateRedirectionUri(String projectId){
-        return "https://docktalk.co.kr/project/workboard/" + projectId;
+        // return "https://docktalk.co.kr/project/workboard/" + projectId;
+        return "http://180.210.81.232:8080/project/workboard/" + projectId;
     }
 
 
