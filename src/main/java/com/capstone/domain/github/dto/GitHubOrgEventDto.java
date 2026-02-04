@@ -1,7 +1,5 @@
 package com.capstone.domain.github.dto;
 
-
-import com.capstone.domain.user.entity.User;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
@@ -79,7 +77,7 @@ public class GitHubOrgEventDto {
         @JsonProperty("html_url")
         private String htmlUrl;
 
-        private User user;
+        private GitHubUser user;
     }
 
     @Data
@@ -91,7 +89,7 @@ public class GitHubOrgEventDto {
         @JsonProperty("html_url")
         private String htmlUrl;
 
-        private User user;
+        private GitHubUser user;
     }
 
     @Data
@@ -114,8 +112,28 @@ public class GitHubOrgEventDto {
     @JsonIgnoreProperties(ignoreUnknown = true)
     public static class PullRequest {
         private Long id;
-        private String url;
+        private Integer number;
         private String title;
+
+        @JsonProperty("html_url")
+        private String htmlUrl;
+
         private String state;
+
+        @JsonProperty("user")
+        private GitHubUser user;
+    }
+
+    @Data
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public static class GitHubUser {
+        private Long id;
+        private String login;
+
+        @JsonProperty("avatar_url")
+        private String avatarUrl;
+
+        @JsonProperty("html_url")
+        private String htmlUrl;
     }
 }
