@@ -33,8 +33,6 @@ public class GitHubOrgEventDto {
 
         @JsonProperty("avatar_url")
         private String avatarUrl;
-
-        private String url;
     }
 
     @Data
@@ -48,12 +46,6 @@ public class GitHubOrgEventDto {
     @Data
     @JsonIgnoreProperties(ignoreUnknown = true)
     public static class Payload {
-        @JsonProperty("push_id")
-        private Long pushId;
-        private String ref;
-        private String head;
-        private List<Commit> commits;
-
         private String action;
 
         @JsonProperty("pull_request")
@@ -83,7 +75,6 @@ public class GitHubOrgEventDto {
     @Data
     @JsonIgnoreProperties(ignoreUnknown = true)
     public static class Comment {
-        private Long id;
         private String body;
 
         @JsonProperty("html_url")
@@ -94,28 +85,12 @@ public class GitHubOrgEventDto {
 
     @Data
     @JsonIgnoreProperties(ignoreUnknown = true)
-    public static class Commit {
-        private String sha;
-        private Author author;
-        private String message;
-        private String url;
-    }
-
-    @Data
-    @JsonIgnoreProperties(ignoreUnknown = true)
-    public static class Author {
-        private String name;
-        private String email;
-    }
-
-    @Data
-    @JsonIgnoreProperties(ignoreUnknown = true)
     public static class PullRequest {
         private Long id;
         private Integer number;
         private String title;
 
-        @JsonProperty("html_url")
+        @JsonProperty("url")
         private String htmlUrl;
 
         private String state;
@@ -127,7 +102,6 @@ public class GitHubOrgEventDto {
     @Data
     @JsonIgnoreProperties(ignoreUnknown = true)
     public static class GitHubUser {
-        private Long id;
         private String login;
 
         @JsonProperty("avatar_url")
