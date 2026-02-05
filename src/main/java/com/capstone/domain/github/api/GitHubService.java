@@ -311,8 +311,7 @@ public class GitHubService {
                 break; // 더 이상 이벤트 없음
             }
 
-            // 필요한 이벤트만 필터링해서 수집
-            acc.addAll(Arrays.stream(body)
+            List<GitHubOrgEventDto> filteredEvents = Arrays.stream(body)
                     .filter(e -> !e.getActor().getLogin().contains("coderabbit"))
                     .filter(e -> Set.of(
                             "IssuesEvent",
@@ -320,8 +319,17 @@ public class GitHubService {
                             "PullRequestReviewEvent",
                             "PullRequestReviewCommentEvent"
                     ).contains(e.getType()))
-                    .toList()
-            );
+                    .toList();
+
+            // PullRequestEvent인 경우 html_url 가져오기
+            for (GitHubOrgEventDto event : filteredEvents) {
+                if ("PullRequestEvent".equals(event.getType()) || "PullRequestReviewCommentEvent".equals(event.getType())) {
+                    convertApiUrlToPrUrl(event);
+                }
+                convertApiUrlToRepoUrl(event);
+            }
+
+            acc.addAll(filteredEvents);
 
             // 마지막 페이지 도달
             if (body.length < perPage) {
@@ -331,6 +339,24 @@ public class GitHubService {
         }
 
         return acc;
+    }
+    private void convertApiUrlToPrUrl(GitHubOrgEventDto event) {
+        String apiUrl = event.getPayload().getPullRequest().getHtmlUrl();
+
+        String htmlUrl = apiUrl
+                .replace("https://api.github.com/repos/", "https://github.com/")
+                .replace("/pulls/", "/pull/");
+
+        event.getPayload().getPullRequest().setHtmlUrl(htmlUrl);
+    }
+
+    private void convertApiUrlToRepoUrl(GitHubOrgEventDto event) {
+        String apiUrl = event.getRepo().getUrl();
+
+        String htmlUrl = apiUrl
+                .replace("https://api.github.com/repos/", "https://github.com/");
+
+        event.getRepo().setUrl(htmlUrl);
     }
 
     public List<ContributionMetricWithShareDto> aggregateMyGithubStatsByProject(String projectId, String username) {
