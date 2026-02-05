@@ -2,7 +2,7 @@ name: CI / CD
 
 on:
   push:
-    branches: [ main ]
+    branches: [ feat/#18-event-api-field ]
 
 jobs:
   CI:
