@@ -1,7 +1,5 @@
 package com.capstone.domain.github.dto;
 
-
-import com.capstone.domain.user.entity.User;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
@@ -35,8 +33,6 @@ public class GitHubOrgEventDto {
 
         @JsonProperty("avatar_url")
         private String avatarUrl;
-
-        private String url;
     }
 
     @Data
@@ -50,12 +46,6 @@ public class GitHubOrgEventDto {
     @Data
     @JsonIgnoreProperties(ignoreUnknown = true)
     public static class Payload {
-        @JsonProperty("push_id")
-        private Long pushId;
-        private String ref;
-        private String head;
-        private List<Commit> commits;
-
         private String action;
 
         @JsonProperty("pull_request")
@@ -79,43 +69,45 @@ public class GitHubOrgEventDto {
         @JsonProperty("html_url")
         private String htmlUrl;
 
-        private User user;
+        private GitHubUser user;
     }
 
     @Data
     @JsonIgnoreProperties(ignoreUnknown = true)
     public static class Comment {
-        private Long id;
         private String body;
 
         @JsonProperty("html_url")
         private String htmlUrl;
 
-        private User user;
-    }
-
-    @Data
-    @JsonIgnoreProperties(ignoreUnknown = true)
-    public static class Commit {
-        private String sha;
-        private Author author;
-        private String message;
-        private String url;
-    }
-
-    @Data
-    @JsonIgnoreProperties(ignoreUnknown = true)
-    public static class Author {
-        private String name;
-        private String email;
+        private GitHubUser user;
     }
 
     @Data
     @JsonIgnoreProperties(ignoreUnknown = true)
     public static class PullRequest {
         private Long id;
-        private String url;
+        private Integer number;
         private String title;
+
+        @JsonProperty("url")
+        private String htmlUrl;
+
         private String state;
+
+        @JsonProperty("user")
+        private GitHubUser user;
+    }
+
+    @Data
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public static class GitHubUser {
+        private String login;
+
+        @JsonProperty("avatar_url")
+        private String avatarUrl;
+
+        @JsonProperty("html_url")
+        private String htmlUrl;
     }
 }
