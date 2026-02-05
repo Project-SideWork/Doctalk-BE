@@ -312,7 +312,12 @@ public class GitHubService {
             }
 
             List<GitHubOrgEventDto> filteredEvents = Arrays.stream(body)
-                    .filter(e -> !e.getActor().getLogin().contains("coderabbit"))
+                    .filter(e -> {
+                    var actor = e.getActor();
+                    return actor != null
+                        && actor.getLogin() != null
+                        && !actor.getLogin().contains("coderabbit");
+                    })
                     .filter(e -> Set.of(
                             "IssuesEvent",
                             "PullRequestEvent",
@@ -323,7 +328,8 @@ public class GitHubService {
 
             // PullRequestEvent인 경우 html_url 가져오기
             for (GitHubOrgEventDto event : filteredEvents) {
-                if ("PullRequestEvent".equals(event.getType()) || "PullRequestReviewCommentEvent".equals(event.getType())) {
+                if (Set.of("PullRequestEvent", "PullRequestReviewEvent", "PullRequestReviewCommentEvent")
+                        .contains(event.getType())) {
                     convertApiUrlToPrUrl(event);
                 }
                 convertApiUrlToRepoUrl(event);
@@ -341,7 +347,9 @@ public class GitHubService {
         return acc;
     }
     private void convertApiUrlToPrUrl(GitHubOrgEventDto event) {
+        if (event.getPayload() == null || event.getPayload().getPullRequest() == null) return;
         String apiUrl = event.getPayload().getPullRequest().getHtmlUrl();
+        if (apiUrl == null) return;
 
         String htmlUrl = apiUrl
                 .replace("https://api.github.com/repos/", "https://github.com/")
@@ -351,6 +359,7 @@ public class GitHubService {
     }
 
     private void convertApiUrlToRepoUrl(GitHubOrgEventDto event) {
+        if (event.getRepo() == null || event.getRepo().getUrl() == null) return;
         String apiUrl = event.getRepo().getUrl();
 
         String htmlUrl = apiUrl
