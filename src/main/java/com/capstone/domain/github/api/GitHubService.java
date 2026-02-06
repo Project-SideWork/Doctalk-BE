@@ -292,11 +292,12 @@ public class GitHubService {
 
     private List<GitHubOrgEventDto> fetchOrgIssuePrEvents(String org) {
         final int perPage = 100;
+        final int maxPages = 3;
         int page = 1;
 
         List<GitHubOrgEventDto> acc = new ArrayList<>();
 
-        while (true) {
+        while (page <= maxPages) {
             String url = String.format("%s/orgs/%s/events?per_page=%d&page=%d", apiUrl, org, perPage, page);
 
             ResponseEntity<GitHubOrgEventDto[]> res = restTemplate.exchange(
