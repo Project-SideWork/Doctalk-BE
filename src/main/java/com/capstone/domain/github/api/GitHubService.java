@@ -377,6 +377,7 @@ public class GitHubService {
     }
 
     private void convertApiUrlToOrgUrl(GitHubOrgDto org) {
+        if (org == null || org.getUrl() == null) return;
         String apiUrl = org.getUrl();
 
         String htmlUrl = apiUrl
