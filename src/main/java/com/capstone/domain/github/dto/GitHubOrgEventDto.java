@@ -5,7 +5,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 
 import java.time.ZonedDateTime;
-import java.util.List;
 
 @Data
 @JsonIgnoreProperties(ignoreUnknown = true) // 응답에 필요 없는 필드는 무시
