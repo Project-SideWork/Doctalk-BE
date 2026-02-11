@@ -122,9 +122,16 @@ public class GitHubService {
                 GitHubOrgDto[].class
         );
 
-        return Optional.ofNullable(response.getBody())
-                .map(Arrays::asList)
-                .orElseGet(Collections::emptyList);
+        GitHubOrgDto[] body = response.getBody();
+
+        List<GitHubOrgDto> responseOrgs = Arrays.stream(Objects.requireNonNull(body))
+                .toList();
+
+        for (GitHubOrgDto event : responseOrgs) {
+            convertApiUrlToOrgUrl(event);
+        }
+
+        return responseOrgs;
     }
 
     public GithubIssueResponse fetchGithubIssuesByProject(String teamId) {
@@ -367,6 +374,15 @@ public class GitHubService {
                 .replace("https://api.github.com/repos/", "https://github.com/");
 
         event.getRepo().setUrl(htmlUrl);
+    }
+
+    private void convertApiUrlToOrgUrl(GitHubOrgDto org) {
+        String apiUrl = org.getUrl();
+
+        String htmlUrl = apiUrl
+                .replace("https://api.github.com/orgs/", "https://github.com/");
+
+        org.setUrl(htmlUrl);
     }
 
     public List<ContributionMetricWithShareDto> aggregateMyGithubStatsByProject(String projectId, String username) {
