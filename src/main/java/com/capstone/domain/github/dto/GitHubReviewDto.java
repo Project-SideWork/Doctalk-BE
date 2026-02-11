@@ -7,7 +7,6 @@ import lombok.Data;
 public class GitHubReviewDto {
     private Long id;
 
-
     private User user;
 
     private String body;
