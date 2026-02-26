@@ -77,13 +77,16 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
         CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
         String email = userDetails.getEmail();
         try {
-            response.addHeader("access", jwtUtil.createAccess(email));
-            response.addHeader("refresh", jwtUtil.createRefresh(email));
+            String accessToken = jwtUtil.createAccess(email);
+            String refreshToken = jwtUtil.createRefresh(email);
+            response.addHeader("access", accessToken);
+            response.addHeader("refresh", refreshToken);
+            response.addCookie(cookieUtil.createAccessCookie(accessToken));
+            response.addCookie(cookieUtil.createCookie("refresh", refreshToken));
         } catch (Exception e) {
             log.error("Error generating JWT: ", e);
             response.setStatus(HttpStatus.INTERNAL_SERVER_ERROR.value());
         }
-        response.addCookie(cookieUtil.createCookie("refresh", jwtUtil.createRefresh(email)));
         response.setStatus(HttpStatus.OK.value());
     }
 

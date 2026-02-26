@@ -15,15 +15,25 @@ import java.util.Optional;
 @Component
 public class CookieUtil {
     private static final int COOKIE_EXPIRE_TIME = 30 * 60; // 30분
+    private static final int ACCESS_COOKIE_MAX_AGE = 15 * 60; // 15분
 
     public Cookie createCookie(String key, String value) {
+        return createCookie(key, value, COOKIE_EXPIRE_TIME);
+    }
+
+    //TODO: 임시 설정
+    public Cookie createCookie(String key, String value, int maxAgeSeconds) {
         Cookie cookie = new Cookie(key, value);
         cookie.setPath("/");
-        cookie.setMaxAge(COOKIE_EXPIRE_TIME);
+        cookie.setMaxAge(maxAgeSeconds);
         cookie.setHttpOnly(true);
-        cookie.setSecure(true);  // HTTPS 요청에만 secure 설정
-        cookie.setAttribute("SameSite", "Strict");
+        cookie.setSecure(false);// 임시 false
+        cookie.setAttribute("SameSite", "LAX"); //임시 코드
         return cookie;
+    }
+
+    public Cookie createAccessCookie(String accessToken) {
+        return createCookie("access", accessToken, ACCESS_COOKIE_MAX_AGE);
     }
 
     public ResponseCookie createResponseCookie(String refreshToken){
@@ -73,5 +83,14 @@ public class CookieUtil {
     public static String findTokenOrThrow(HttpServletRequest request){
         return getRefreshTokenFromRequest(request)
                 .orElseThrow(() -> new InvalidTokenException(TokenMessages.REFRESH_NOT_FOUND));
+    }
+    public static Optional<String> getAccessTokenFromRequest(HttpServletRequest request) {
+        if (request.getCookies() == null) {
+            return Optional.empty();
+        }
+        return Arrays.stream(request.getCookies())
+            .filter(cookie -> "access".equals(cookie.getName()))
+            .map(Cookie::getValue)
+            .findFirst();
     }
 }
