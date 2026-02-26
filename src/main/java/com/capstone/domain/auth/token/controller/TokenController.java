@@ -5,6 +5,7 @@ import com.capstone.global.jwt.CookieUtil;
 import com.capstone.global.jwt.JwtUtil;
 import io.swagger.v3.oas.annotations.Parameter;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -18,10 +19,12 @@ public class TokenController implements TokenControllerDocs {
     private final CookieUtil cookieUtil;
 
     @PostMapping("/token/refresh")
-    public ResponseEntity<?> refreshAccessToken(@Parameter(description = "리프레쉬 토큰만 전달하면 됨") @RequestHeader("Authorization") String refreshToken, HttpServletRequest request) {
+    public ResponseEntity<?> refreshAccessToken(@Parameter(description = "리프레쉬 토큰만 전달하면 됨") @RequestHeader("Authorization") String refreshToken, HttpServletRequest request, HttpServletResponse response) {
+        String newAccessToken = jwtUtil.reIssueToken(refreshToken);
+        response.addCookie(cookieUtil.createAccessCookie(newAccessToken));
         return ResponseEntity.ok()
                 .header("refresh", refreshToken)
-                .header("access", jwtUtil.reIssueToken(refreshToken))
+                .header("access", newAccessToken)
                 .build();
     }
 }
