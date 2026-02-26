@@ -21,6 +21,7 @@ public class CookieUtil {
         return createCookie(key, value, COOKIE_EXPIRE_TIME);
     }
 
+    //TODO: 임시 설정
     public Cookie createCookie(String key, String value, int maxAgeSeconds) {
         Cookie cookie = new Cookie(key, value);
         cookie.setPath("/");
