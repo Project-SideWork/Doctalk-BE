@@ -1,4 +1,4 @@
-package com.capstone.domain.github.api;
+package com.capstone.domain.github.service;
 
 import com.capstone.domain.github.dto.*;
 import com.capstone.domain.github.dto.request.OrgRepoRequest;
@@ -15,14 +15,14 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 import java.util.*;
 
 import static com.capstone.domain.github.util.HttpSetter.githubEntity;
 
-@Component
+@Service
 @RequiredArgsConstructor
 @Slf4j
 public class GitHubService {
@@ -141,7 +141,7 @@ public class GitHubService {
 
         for (ProjectOrganization org : Optional.ofNullable(project.getProjectOrganizations()).orElse(Collections.emptyList())) {
             String organization = org.getOrgName();
-            for (String repoName : org.getProjectRepos()) {
+            for (String repoName : org.getOrgRepos()) {
                 all.addAll(fetchIssues(organization, repoName));
             }
         }
@@ -250,7 +250,7 @@ public class GitHubService {
 
         for (ProjectOrganization org : Optional.ofNullable(project.getProjectOrganizations()).orElse(Collections.emptyList())) {
             String organization = org.getOrgName();
-            for (String repoName : org.getProjectRepos()) {
+            for (String repoName : org.getOrgRepos()) {
                 all.addAll(fetchReviewRequestedPullRequests(organization, repoName, "kamillcream"));
             }
         }
