@@ -39,4 +39,13 @@ public class CustomProjectRepositoryImpl implements CustomProjectRepository{
         mongoTemplate.updateFirst(query, update, Project.class);
     }
 
+    @Override
+    public Project findByGithubOrganization(String orgName) {
+        Query query = new Query(
+                Criteria.where("projectOrganizations.orgName").is(orgName)
+        );
+
+        return mongoTemplate.findOne(query, Project.class);
+    }
+
 }
