@@ -1,6 +1,6 @@
 package com.capstone.domain.github.controller;
 
-import com.capstone.domain.github.api.GitHubService;
+import com.capstone.domain.github.service.GitHubService;
 import com.capstone.domain.github.docs.GithubControllerDocs;
 import com.capstone.domain.github.dto.*;
 import com.capstone.domain.github.dto.request.OrgRepoRequest;
@@ -8,8 +8,10 @@ import com.capstone.domain.github.dto.response.GitHubOrgEventResponse;
 import com.capstone.domain.github.dto.response.GithubIssueResponse;
 import com.capstone.domain.github.dto.response.GithubPrResponse;
 import com.capstone.domain.github.dto.response.ReviewCommentResponse;
+import com.capstone.domain.github.service.GithubCommandService;
 import com.capstone.global.response.ApiResponse;
 import com.capstone.global.security.CustomUserDetails;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -21,6 +23,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class GithubController implements GithubControllerDocs {
     private final GitHubService gitHubService;
+    private final GithubCommandService githubCommandService;
 
     @GetMapping("/organizations/my")
     public ResponseEntity<ApiResponse<List<GitHubOrgDto>>> getMyGithubOrganizations(){
@@ -162,5 +165,15 @@ public class GithubController implements GithubControllerDocs {
             @RequestParam(defaultValue = "10") int prCount
     ) {
         return ResponseEntity.ok(ApiResponse.onSuccess(gitHubService.getRepositoryReviewStats(org, repo, prCount)));
+    }
+
+    @PostMapping("/webhook")
+    public ResponseEntity<Void> handleWebhook(
+            @RequestHeader("X-GitHub-Event") String event,
+            @RequestHeader("X-Hub-Signature-256") String signature,
+            @RequestBody String payload
+    ) throws JsonProcessingException {
+        githubCommandService.createIssue(payload);
+        return ResponseEntity.ok().build();
     }
 }
