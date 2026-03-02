@@ -12,7 +12,7 @@ import java.time.OffsetDateTime;
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
-@EqualsAndHashCode
+@EqualsAndHashCode(of = "id")
 public class ProjectGithubIssue {
     private Long id;
     private Long repositoryId;
