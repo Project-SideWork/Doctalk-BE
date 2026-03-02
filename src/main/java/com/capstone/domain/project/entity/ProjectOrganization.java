@@ -13,7 +13,12 @@ import java.util.List;
 public class ProjectOrganization {
     private String orgName;
     private List<String> orgRepos;
+    @Builder.Default
     private List<ProjectGithubIssue> githubIssues = new ArrayList<>();
+    @Builder.Default
+    private List<ProjectGithubPullRequest> githubPullRequests = new ArrayList<>();
+    @Builder.Default
+    private List<ProjectGithubPullRequestReview> githubPullRequestReviews = new ArrayList<>();
 
     public static ProjectOrganization create(String orgName, List<String> orgRepos) {
         return ProjectOrganization.builder()
@@ -24,5 +29,13 @@ public class ProjectOrganization {
 
     public void addGithubIssue(ProjectGithubIssue issue) {
         this.getGithubIssues().add(issue);
+    }
+
+    public void addGithubPullRequest(ProjectGithubPullRequest pr) {
+        this.getGithubPullRequests().add(pr);
+    }
+
+    public void addGithubPullRequestReview(ProjectGithubPullRequestReview prReview) {
+        this.getGithubPullRequestReviews().add(prReview);
     }
 }
