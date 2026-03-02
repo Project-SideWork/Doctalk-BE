@@ -1,21 +1,41 @@
 package com.capstone.domain.project.entity;
 
-import lombok.AllArgsConstructor;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 @EqualsAndHashCode
 public class ProjectOrganization {
     private String orgName;
-    private List<String> projectRepos;
+    private List<String> orgRepos;
+    @Builder.Default
+    private List<ProjectGithubIssue> githubIssues = new ArrayList<>();
+    @Builder.Default
+    private List<ProjectGithubPullRequest> githubPullRequests = new ArrayList<>();
+    @Builder.Default
+    private List<ProjectGithubPullRequestReview> githubPullRequestReviews = new ArrayList<>();
 
-    public static ProjectOrganization create(String orgName, List<String> projectRepos) {
-        return new ProjectOrganization(orgName, projectRepos);
+    public static ProjectOrganization create(String orgName, List<String> orgRepos) {
+        return ProjectOrganization.builder()
+                .orgName(orgName)
+                .orgRepos(orgRepos)
+                .build();
+    }
+
+    public void addGithubIssue(ProjectGithubIssue issue) {
+        this.getGithubIssues().add(issue);
+    }
+
+    public void addGithubPullRequest(ProjectGithubPullRequest pr) {
+        this.getGithubPullRequests().add(pr);
+    }
+
+    public void addGithubPullRequestReview(ProjectGithubPullRequestReview prReview) {
+        this.getGithubPullRequestReviews().add(prReview);
     }
 }

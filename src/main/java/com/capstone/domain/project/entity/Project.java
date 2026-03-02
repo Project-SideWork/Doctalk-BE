@@ -20,7 +20,9 @@ public class Project extends BaseDocument {
     private String projectName;
     private String imageId;
     private String description;
+    @Builder.Default
     private List<String> taskIds = new ArrayList<>();
+    @Builder.Default
     private List<String> documentIds = new ArrayList<>();
     private List<ProjectOrganization> projectOrganizations;
 
