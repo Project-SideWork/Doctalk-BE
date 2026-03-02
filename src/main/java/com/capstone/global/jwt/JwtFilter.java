@@ -51,12 +51,16 @@ public class JwtFilter extends OncePerRequestFilter {
 
 
         if (accessToken == null) {
-            filterChain.doFilter(request, response);
-            return;
+            token = CookieUtil.getAccessTokenFromRequest(request).orElse(null);
+            if (token == null || token.isEmpty()) {
+                filterChain.doFilter(request, response);
+                return;
+            }
         }
-
-        if(token.startsWith("Bearer ")) {
-            token = token.substring(7);
+        else {
+            if (token.startsWith("Bearer ")) {
+                token = token.substring(7);
+            }
         }
 
         log.info("token: {}", token);
