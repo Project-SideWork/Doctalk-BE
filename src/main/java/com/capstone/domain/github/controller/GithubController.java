@@ -173,7 +173,11 @@ public class GithubController implements GithubControllerDocs {
             @RequestHeader("X-Hub-Signature-256") String signature,
             @RequestBody String payload
     ) throws JsonProcessingException {
-        githubCommandService.createIssue(payload);
+        switch (event) {
+            case "issue" -> githubCommandService.createIssue(payload);
+            case "pull_request" -> githubCommandService.createPullRequest(payload);
+            case "pull_request_review" -> githubCommandService.createPullRequestReview(payload);
+        }
         return ResponseEntity.ok().build();
     }
 }
