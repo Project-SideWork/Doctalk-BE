@@ -5,6 +5,9 @@ import com.capstone.domain.task.entity.Task;
 import com.capstone.domain.task.entity.Version;
 import com.capstone.domain.task.exception.VersionNotFoundException;
 import com.capstone.domain.task.message.TaskMessages;
+import com.capstone.domain.task.message.TaskStatus;
+import com.capstone.domain.task.repository.DueDateCompletion;
+import com.capstone.domain.task.service.TaskService;
 import com.capstone.global.util.DateTimeUtil;
 import com.mongodb.client.result.UpdateResult;
 import lombok.RequiredArgsConstructor;
@@ -78,6 +81,28 @@ public class CustomTaskRepositoryImpl implements CustomTaskRepository{
         Query query = new Query();
         query.addCriteria(Criteria.where("projectId").in(projectIds));
         return mongoTemplate.find(query, Task.class);
+    }
+
+    @Override
+    public double rateDueDateCompletion(String projectId, String userName) {
+        Query query = new Query(Criteria.where("projectId").is(projectId));
+        List<Task> tasks = mongoTemplate.find(query, Task.class);
+
+        if(tasks.isEmpty()) return 0;
+        long total = tasks.stream()
+                .filter(task -> task.getEditors().contains(userName))
+                .filter(task -> task.getStatus() == TaskStatus.COMPLETED)
+                .count();
+
+
+        long onTime = tasks.stream()
+                .filter(task -> task.getEditors().contains(userName))
+                .filter(task -> task.getStatus() == TaskStatus.COMPLETED)
+                .filter(Task::isCompletedOnTime)
+                .count();
+
+        double rate = total == 0 ? 0 : (double) onTime / total * 100;
+        return Math.round(rate * 10) / 10.0;
     }
 
 }
