@@ -85,6 +85,7 @@ public class CustomTaskRepositoryImpl implements CustomTaskRepository{
                 Criteria.where("projectId").is(projectId)
                         .and("editors").in(userName)
                         .and("status").is(TaskStatus.COMPLETED)
+                        .and("deadline").ne(null)
         );
         List<Task> completedTasks = mongoTemplate.find(query, Task.class);
 
