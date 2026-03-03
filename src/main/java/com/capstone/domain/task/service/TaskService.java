@@ -110,7 +110,11 @@ public class TaskService {
         Task task = findTaskByIdOrThrow(id);
         TaskChangeDetail beforeChange = TaskChangeDetail.from(task);
 
-        task.updateStatus(status);
+        if(TaskStatus.valueOf(status) == TaskStatus.COMPLETED) {
+            task.assignCompletedAt();
+        }
+
+        task.updateStatus(TaskStatus.valueOf(status));
         taskRepository.save(task);
         TaskChangeDetail afterChange = TaskChangeDetail.from(task);
 
