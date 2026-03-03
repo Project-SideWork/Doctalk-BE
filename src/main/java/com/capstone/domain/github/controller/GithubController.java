@@ -174,7 +174,7 @@ public class GithubController implements GithubControllerDocs {
             @RequestBody String payload
     ) throws JsonProcessingException {
         switch (event) {
-            case "issue" -> githubCommandService.createIssue(payload);
+            case "issues" -> githubCommandService.createIssue(payload);
             case "pull_request" -> githubCommandService.createPullRequest(payload);
             case "pull_request_review" -> githubCommandService.createPullRequestReview(payload);
         }
