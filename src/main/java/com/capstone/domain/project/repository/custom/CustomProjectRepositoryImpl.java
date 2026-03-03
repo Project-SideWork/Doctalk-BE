@@ -60,13 +60,13 @@ public class CustomProjectRepositoryImpl implements CustomProjectRepository{
         }
 
         int total = project.getProjectOrganizations().stream()
-                .mapToInt(org -> org.getGithubIssues().size())
+                .mapToInt(org -> org.getGithubIssues() == null ? 0 : org.getGithubIssues().size())
                 .sum();
 
         int mine = project.getProjectOrganizations().stream()
                 .filter(org -> org.getGithubIssues() != null)
                 .flatMap(org -> org.getGithubIssues().stream())
-                .filter(issue -> githubUserId.equals(issue.getIssueOpenUserId()))
+                .filter(issue -> Objects.equals(githubUserId, issue.getIssueOpenUserId()))
                 .mapToInt(issue -> 1)
                 .sum();
 
@@ -87,13 +87,13 @@ public class CustomProjectRepositoryImpl implements CustomProjectRepository{
         }
 
         int total = project.getProjectOrganizations().stream()
-                .mapToInt(org -> org.getGithubPullRequests().size())
+                .mapToInt(org -> org.getGithubPullRequests() == null ? 0 : org.getGithubPullRequests().size())
                 .sum();
 
         int mine = project.getProjectOrganizations().stream()
                 .filter(org -> org.getGithubPullRequests() != null)
                 .flatMap(org -> org.getGithubPullRequests().stream())
-                .filter(issue -> githubUserId.equals(issue.getPrAuthorId()))
+                .filter(issue -> Objects.equals(githubUserId, issue.getPrAuthorId()))
                 .mapToInt(issue -> 1)
                 .sum();
 
@@ -113,13 +113,13 @@ public class CustomProjectRepositoryImpl implements CustomProjectRepository{
         }
 
         int total =  project.getProjectOrganizations().stream()
-                .mapToInt(org -> org.getGithubPullRequestReviews().size())
+                .mapToInt(org -> org.getGithubPullRequestReviews() == null ? 0 : org.getGithubPullRequestReviews().size())
                 .sum();
 
         int mine = project.getProjectOrganizations().stream()
                 .filter(org -> org.getGithubPullRequestReviews() != null)
                 .flatMap(org -> org.getGithubPullRequestReviews().stream())
-                .filter(review -> githubUserId.equals(review.getReviewerId()))
+                .filter(review -> Objects.equals(githubUserId, review.getReviewerId()))
                 .mapToInt(review -> 1)
                 .sum();
 

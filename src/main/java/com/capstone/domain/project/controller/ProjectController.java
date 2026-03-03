@@ -119,6 +119,7 @@ public class ProjectController implements ProjectControllerDocs {
 
 
     @GetMapping("/contribution/{projectId}")
+    @PreAuthorize("@projectAuthorityEvaluator.hasPermission(#projectId, {'ROLE_MANAGER','ROLE_MEMBER'}, authentication)")
     public ResponseEntity<ApiResponse<ProjectContributionResult>> getContributions(
             @AuthenticationPrincipal CustomUserDetails customUserDetails,
             @PathVariable("projectId") String projectId

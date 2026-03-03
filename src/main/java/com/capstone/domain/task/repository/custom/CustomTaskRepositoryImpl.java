@@ -2,12 +2,9 @@ package com.capstone.domain.task.repository.custom;
 
 import com.capstone.domain.task.dto.request.TaskRequest;
 import com.capstone.domain.task.entity.Task;
-import com.capstone.domain.task.entity.Version;
 import com.capstone.domain.task.exception.VersionNotFoundException;
 import com.capstone.domain.task.message.TaskMessages;
 import com.capstone.domain.task.message.TaskStatus;
-import com.capstone.domain.task.repository.DueDateCompletion;
-import com.capstone.domain.task.service.TaskService;
 import com.capstone.global.util.DateTimeUtil;
 import com.mongodb.client.result.UpdateResult;
 import lombok.RequiredArgsConstructor;
@@ -23,7 +20,6 @@ import java.util.List;
 @RequiredArgsConstructor
 public class CustomTaskRepositoryImpl implements CustomTaskRepository{
     private final MongoTemplate mongoTemplate;
-
 
     @Override
     public String modifyVersion(TaskRequest taskDto){
@@ -85,24 +81,21 @@ public class CustomTaskRepositoryImpl implements CustomTaskRepository{
 
     @Override
     public double rateDueDateCompletion(String projectId, String userName) {
-        Query query = new Query(Criteria.where("projectId").is(projectId));
-        List<Task> tasks = mongoTemplate.find(query, Task.class);
+        Query query = new Query(
+                Criteria.where("projectId").is(projectId)
+                        .and("editors").in(userName)
+                        .and("status").is(TaskStatus.COMPLETED)
+        );
+        List<Task> completedTasks = mongoTemplate.find(query, Task.class);
 
-        if(tasks.isEmpty()) return 0;
-        long total = tasks.stream()
-                .filter(task -> task.getEditors().contains(userName))
-                .filter(task -> task.getStatus() == TaskStatus.COMPLETED)
-                .count();
+        if(completedTasks.isEmpty()) return 0;
+        long total = completedTasks.size();
 
-
-        long onTime = tasks.stream()
-                .filter(task -> task.getEditors().contains(userName))
-                .filter(task -> task.getStatus() == TaskStatus.COMPLETED)
+        long onTime = completedTasks.stream()
                 .filter(Task::isCompletedOnTime)
                 .count();
 
-        double rate = total == 0 ? 0 : (double) onTime / total * 100;
+        double rate = (double) onTime / total * 100;
         return Math.round(rate * 10) / 10.0;
     }
-
 }

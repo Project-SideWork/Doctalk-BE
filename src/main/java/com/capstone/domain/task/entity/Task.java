@@ -35,6 +35,10 @@ public class Task extends BaseDocument {
         this.completedAt = LocalDate.now();
     }
 
+    public void resetCompletedAt(){
+        this.completedAt = null;
+    }
+
     public void updateCurrentVersion(String currentVersion){
         this.currentVersion = currentVersion;
     }

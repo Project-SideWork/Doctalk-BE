@@ -112,6 +112,8 @@ public class TaskService {
 
         if(TaskStatus.valueOf(status) == TaskStatus.COMPLETED) {
             task.assignCompletedAt();
+        } else {
+            task.resetCompletedAt();
         }
 
         task.updateStatus(TaskStatus.valueOf(status));
