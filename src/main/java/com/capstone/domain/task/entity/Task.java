@@ -7,6 +7,7 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.List;
 
 @Document(collection = "task")
@@ -29,14 +30,13 @@ public class Task extends BaseDocument {
 
     public void updateStatus(TaskStatus status){
         this.status = status;
-    }
-
-    public void assignCompletedAt(){
-        this.completedAt = LocalDate.now();
-    }
-
-    public void resetCompletedAt(){
-        this.completedAt = null;
+        if (status == TaskStatus.COMPLETED) {
+            if (this.completedAt == null) {
+                this.completedAt = LocalDate.now(ZoneId.of("Asia/Seoul"));
+            }
+        } else {
+            this.completedAt = null;
+        }
     }
 
     public void updateCurrentVersion(String currentVersion){
@@ -47,8 +47,7 @@ public class Task extends BaseDocument {
         this.versionHistory.add(version);
     }
 
-    public void updateInfo(String title, LocalDate deadline, String currentVersion,List<String> editors)
-    {
+    public void updateInfo(String title, LocalDate deadline, String currentVersion,List<String> editors) {
         this.title = title;
         this.deadline = deadline;
         this.currentVersion = currentVersion;
