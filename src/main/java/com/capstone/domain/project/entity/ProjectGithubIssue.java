@@ -19,16 +19,18 @@ public class ProjectGithubIssue {
     private Integer issueNumber;
     private String issueTitle;
     private String issueState;
+    private Long issueOpenUserId;
     private String issueOpenUser;
     private Instant issueCreatedAt;
     private Instant issueClosedAt;
 
     public static ProjectGithubIssue create(Long id, Long repositoryId,
                                             Integer issueNumber, String issueTitle,
-                                            String issueState, String issueOpenUser,
+                                            String issueState, Long issueOpenUserId,
+                                            String issueOpenUser,
                                             OffsetDateTime issueCreatedAt) {
         return new ProjectGithubIssue(
-                id, repositoryId, issueNumber, issueTitle, issueState, issueOpenUser,
+                id, repositoryId, issueNumber, issueTitle, issueState, issueOpenUserId, issueOpenUser,
                 issueCreatedAt.toInstant(), null
         );
     }

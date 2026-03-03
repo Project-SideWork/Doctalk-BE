@@ -31,7 +31,8 @@ public class GithubCommandService {
         ProjectGithubIssue projectGithubIssue = ProjectGithubIssue.create(
                 dto.getIssue().getId(), dto.getRepository().getId(),
                 dto.getIssue().getNumber(), dto.getIssue().getTitle(),
-                dto.getIssue().getState(), dto.getIssue().getUser().getLogin(),
+                dto.getIssue().getState(), dto.getIssue().getUser().getId(),
+                dto.getIssue().getUser().getLogin(),
                 dto.getIssue().getCreatedAt()
         );
 
@@ -55,6 +56,7 @@ public class GithubCommandService {
                 dto.getPullRequest().getNumber(),
                 dto.getPullRequest().getTitle(),
                 dto.getPullRequest().getState(),
+                dto.getPullRequest().getUser().getId(),
                 dto.getPullRequest().getUser().getLogin(),
                 dto.getPullRequest().getCreatedAt().toInstant(),
                 dto.getPullRequest().getClosedAt() != null
@@ -92,6 +94,7 @@ public class GithubCommandService {
                         dto.getRepository().getId(),
                         dto.getPullRequest().getId(),
                         dto.getPullRequest().getNumber(),
+                        dto.getReview().getUser().getId(),
                         dto.getReview().getUser().getLogin(),
                         dto.getReview().getState(),
                         dto.getReview().getBody(),

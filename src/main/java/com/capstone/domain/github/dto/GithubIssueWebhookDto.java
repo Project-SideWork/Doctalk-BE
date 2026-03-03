@@ -53,6 +53,7 @@ public class GithubIssueWebhookDto {
     @Getter
     @JsonIgnoreProperties(ignoreUnknown = true)
     public static class User {
+        private Long id;
         private String login;
     }
 
