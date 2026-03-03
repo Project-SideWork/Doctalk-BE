@@ -1,18 +1,17 @@
 package com.capstone.domain.task.dto.response;
 
-import com.capstone.domain.task.entity.Attachment;
 import com.capstone.domain.task.entity.Task;
+import com.capstone.domain.task.message.TaskStatus;
 import lombok.Builder;
 
 import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 @Builder
 public record  TaskSpecResponse(
         String taskId,
         String title,
-        String status,
+        TaskStatus status,
         String content,
         LocalDate deadline,
         List<AttachmentDto> attachmentList,
