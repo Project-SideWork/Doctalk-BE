@@ -50,6 +50,10 @@ public class CustomProjectRepositoryImpl implements CustomProjectRepository{
 
     @Override
     public double rateMyIssueRatio(String projectId, Long githubUserId) {
+        if (githubUserId == null) {
+            return 0;
+        }
+
         Query query = new Query(
                 Criteria.where("_id").is(projectId)
         );
@@ -77,6 +81,10 @@ public class CustomProjectRepositoryImpl implements CustomProjectRepository{
 
     @Override
     public double rateMyPRRatio(String projectId, Long githubUserId) {
+        if (githubUserId == null) {
+            return 0;
+        }
+
         Query query = new Query(
                 Criteria.where("_id").is(projectId)
         );
@@ -103,6 +111,10 @@ public class CustomProjectRepositoryImpl implements CustomProjectRepository{
 
     @Override
     public double rateMyReviewRatio(String projectId, Long githubUserId) {
+        if (githubUserId == null) {
+            return 0;
+        }
+
         Query query = new Query(
                 Criteria.where("_id").is(projectId)
         );
