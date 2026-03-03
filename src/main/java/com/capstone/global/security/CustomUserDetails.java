@@ -28,6 +28,11 @@ public class CustomUserDetails implements UserDetails {
         return user.getEmail();
     }
 
+    // TODO: 추후 깃허브 계정 정보랑 연동 필요.
+    public Long getGithubId() {
+        return 1L;
+    }
+
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         List<GrantedAuthority> authorities = new ArrayList<>();
