@@ -48,4 +48,83 @@ public class CustomProjectRepositoryImpl implements CustomProjectRepository{
         return mongoTemplate.findOne(query, Project.class);
     }
 
+    @Override
+    public double rateMyIssueRatio(String projectId, Long githubUserId) {
+        Query query = new Query(
+                Criteria.where("_id").is(projectId)
+        );
+        Project project = mongoTemplate.findOne(query, Project.class);
+
+        if (project == null || project.getProjectOrganizations() == null) {
+            return 0;
+        }
+
+        int total = project.getProjectOrganizations().stream()
+                .mapToInt(org -> org.getGithubIssues().size())
+                .sum();
+
+        int mine = project.getProjectOrganizations().stream()
+                .filter(org -> org.getGithubIssues() != null)
+                .flatMap(org -> org.getGithubIssues().stream())
+                .filter(issue -> githubUserId.equals(issue.getIssueOpenUserId()))
+                .mapToInt(issue -> 1)
+                .sum();
+
+        double rate = total == 0 ? 0 : (double) mine / total * 100;
+        return Math.round(rate * 10) / 10.0;
+    }
+
+
+    @Override
+    public double rateMyPRRatio(String projectId, Long githubUserId) {
+        Query query = new Query(
+                Criteria.where("_id").is(projectId)
+        );
+        Project project = mongoTemplate.findOne(query, Project.class);
+
+        if (project == null || project.getProjectOrganizations() == null) {
+            return 0;
+        }
+
+        int total = project.getProjectOrganizations().stream()
+                .mapToInt(org -> org.getGithubPullRequests().size())
+                .sum();
+
+        int mine = project.getProjectOrganizations().stream()
+                .filter(org -> org.getGithubPullRequests() != null)
+                .flatMap(org -> org.getGithubPullRequests().stream())
+                .filter(issue -> githubUserId.equals(issue.getPrAuthorId()))
+                .mapToInt(issue -> 1)
+                .sum();
+
+        double rate = total == 0 ? 0 : (double) mine / total * 100;
+        return Math.round(rate * 10) / 10.0;
+    }
+
+    @Override
+    public double rateMyReviewRatio(String projectId, Long githubUserId) {
+        Query query = new Query(
+                Criteria.where("_id").is(projectId)
+        );
+        Project project = mongoTemplate.findOne(query, Project.class);
+
+        if (project == null || project.getProjectOrganizations() == null) {
+            return 0;
+        }
+
+        int total =  project.getProjectOrganizations().stream()
+                .mapToInt(org -> org.getGithubPullRequestReviews().size())
+                .sum();
+
+        int mine = project.getProjectOrganizations().stream()
+                .filter(org -> org.getGithubPullRequestReviews() != null)
+                .flatMap(org -> org.getGithubPullRequestReviews().stream())
+                .filter(review -> githubUserId.equals(review.getReviewerId()))
+                .mapToInt(review -> 1)
+                .sum();
+
+        double rate = total == 0 ? 0 : (double) mine / total * 100;
+        return Math.round(rate * 10) / 10.0;
+    }
+
 }
