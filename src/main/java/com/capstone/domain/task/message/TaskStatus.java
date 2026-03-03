@@ -1,6 +1,5 @@
 package com.capstone.domain.task.message;
 
-import com.capstone.domain.user.entity.Role;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 

@@ -1,6 +1,7 @@
 package com.capstone.domain.task.dto.request;
 
 import com.capstone.domain.task.entity.Task;
+import com.capstone.domain.task.message.TaskStatus;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.annotation.Nullable;
 import jakarta.validation.constraints.NotNull;
@@ -8,6 +9,7 @@ import jakarta.validation.constraints.NotNull;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 public record TaskRequest(String taskId,
                           @NotNull
@@ -37,11 +39,11 @@ public record TaskRequest(String taskId,
         return Task.builder()
                 .title(this.title())
                 .projectId(this.projectId)
-                .status(status)
+                .status(TaskStatus.valueOf(status))
                 .currentVersion(this.version)
                 .versionHistory(new ArrayList<>())
                 .editors(editors)
-                .deadline(LocalDate.parse(this.deadline))
+                .deadline(LocalDate.parse(Objects.requireNonNull(this.deadline)))
                 .build();
     }
 }

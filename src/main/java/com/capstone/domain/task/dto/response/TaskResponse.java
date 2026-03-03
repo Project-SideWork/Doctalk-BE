@@ -2,6 +2,7 @@ package com.capstone.domain.task.dto.response;
 
 import com.capstone.domain.task.entity.Task;
 import com.capstone.domain.task.entity.Version;
+import com.capstone.domain.task.message.TaskStatus;
 import lombok.Builder;
 
 import java.util.List;
@@ -10,7 +11,7 @@ import java.util.List;
 public record TaskResponse(
         String title,
         String currentVersion,
-        String status,
+        TaskStatus status,
         List<String> editors,
         List<Version> versionHistory
 ) {

@@ -110,7 +110,7 @@ public class TaskService {
         Task task = findTaskByIdOrThrow(id);
         TaskChangeDetail beforeChange = TaskChangeDetail.from(task);
 
-        task.updateStatus(status);
+        task.updateStatus(TaskStatus.valueOf(status));
         taskRepository.save(task);
         TaskChangeDetail afterChange = TaskChangeDetail.from(task);
 

@@ -16,6 +16,7 @@ public class ProjectGithubPullRequestReview {
     private Long pullRequestId;
     private Integer pullRequestNumber;
 
+    private Long reviewerId;
     private String reviewer;
     private String state;
     private String body;
@@ -27,6 +28,7 @@ public class ProjectGithubPullRequestReview {
             Long repositoryId,
             Long pullRequestId,
             Integer pullRequestNumber,
+            Long reviewerId,
             String reviewer,
             String state,
             String body,
@@ -37,6 +39,7 @@ public class ProjectGithubPullRequestReview {
                 .repositoryId(repositoryId)
                 .pullRequestId(pullRequestId)
                 .pullRequestNumber(pullRequestNumber)
+                .reviewerId(reviewerId)
                 .reviewer(reviewer)
                 .state(state)
                 .body(body)

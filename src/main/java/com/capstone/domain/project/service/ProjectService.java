@@ -2,6 +2,7 @@ package com.capstone.domain.project.service;
 
 import com.capstone.domain.file.service.FileService;
 import com.capstone.domain.project.dto.request.ProjectUpdateRequest;
+import com.capstone.domain.project.dto.response.ProjectContributionResult;
 import com.capstone.domain.project.dto.response.ProjectCoworkerDto;
 import com.capstone.domain.project.dto.response.ProjectResponse;
 import com.capstone.domain.project.dto.request.ProjectSaveRequest;
@@ -9,6 +10,7 @@ import com.capstone.domain.project.entity.Project;
 import com.capstone.domain.project.entity.ProjectOrganization;
 import com.capstone.domain.project.repository.ProjectRepository;
 
+import com.capstone.domain.task.repository.TaskRepository;
 import com.capstone.domain.user.entity.ProjectUser;
 import com.capstone.domain.user.entity.User;
 import com.capstone.domain.user.exception.InvalidUserException;
@@ -38,6 +40,7 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 public class ProjectService {
+    private final TaskRepository taskRepository;
     private final ProjectRepository projectRepository;
     private final UserRepository userRepository;
     private final UserService userService;
@@ -219,7 +222,16 @@ public class ProjectService {
             .build();
         projectUsers.add(inviteUser);
         projectUserRepository.saveAll(projectUsers);
+    }
 
+    public ProjectContributionResult queryProjectContribution(String projectId, CustomUserDetails customUserDetails){
+        double issueContribution = projectRepository.rateMyIssueRatio(projectId, customUserDetails.getGithubId());
+        double prContribution = projectRepository.rateMyPRRatio(projectId, customUserDetails.getGithubId());
+        double reviewContribution = projectRepository.rateMyReviewRatio(projectId, customUserDetails.getGithubId());
+        double deadlineOnTimeRatio = taskRepository.rateDueDateCompletion(projectId, customUserDetails.getEmail());
 
+        return new ProjectContributionResult(
+                issueContribution, prContribution, reviewContribution, deadlineOnTimeRatio
+        );
     }
 }

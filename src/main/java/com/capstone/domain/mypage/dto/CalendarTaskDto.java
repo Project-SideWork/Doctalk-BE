@@ -1,7 +1,7 @@
 package com.capstone.domain.mypage.dto;
 
 import com.capstone.domain.task.entity.Task;
-import com.capstone.domain.task.entity.Version;
+import com.capstone.domain.task.message.TaskStatus;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -9,7 +9,7 @@ import java.time.LocalDateTime;
 public record CalendarTaskDto(
         String id,
         String title,
-        String status,
+        TaskStatus status,
         LocalDate end,
         LocalDateTime start
 ) {

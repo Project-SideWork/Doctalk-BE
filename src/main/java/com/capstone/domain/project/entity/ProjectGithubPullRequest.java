@@ -16,6 +16,7 @@ public class ProjectGithubPullRequest {
     private Integer prNumber;
     private String prTitle;
     private String prState;
+    private Long prAuthorId;
     private String prAuthor;
 
     private Instant prCreatedAt;
@@ -38,6 +39,7 @@ public class ProjectGithubPullRequest {
             Integer prNumber,
             String prTitle,
             String prState,
+            Long prAuthorId,
             String prAuthor,
             Instant createdAt,
             Instant closedAt,
@@ -56,6 +58,7 @@ public class ProjectGithubPullRequest {
                 .prNumber(prNumber)
                 .prTitle(prTitle)
                 .prState(prState)
+                .prAuthorId(prAuthorId)
                 .prAuthor(prAuthor)
                 .prCreatedAt(createdAt)
                 .prClosedAt(closedAt)

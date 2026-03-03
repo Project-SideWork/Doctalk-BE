@@ -4,6 +4,7 @@ import com.capstone.docs.ProjectControllerDocs;
 import com.capstone.domain.project.dto.request.*;
 
 import com.capstone.domain.project.dto.response.InviteCheckResult;
+import com.capstone.domain.project.dto.response.ProjectContributionResult;
 import com.capstone.domain.project.dto.response.ProjectResponse;
 import com.capstone.domain.project.entity.Project;
 import com.capstone.domain.project.service.ProjectService;
@@ -116,4 +117,13 @@ public class ProjectController implements ProjectControllerDocs {
         return ResponseEntity.ok(ApiResponse.onSuccess());
     }
 
+
+    @GetMapping("/contribution/{projectId}")
+    @PreAuthorize("@projectAuthorityEvaluator.hasPermission(#projectId, {'ROLE_MANAGER','ROLE_MEMBER'}, authentication)")
+    public ResponseEntity<ApiResponse<ProjectContributionResult>> getContributions(
+            @AuthenticationPrincipal CustomUserDetails customUserDetails,
+            @PathVariable("projectId") String projectId
+    ) {
+        return ResponseEntity.ok(ApiResponse.onSuccess(projectService.queryProjectContribution(projectId, customUserDetails)));
+    }
 }

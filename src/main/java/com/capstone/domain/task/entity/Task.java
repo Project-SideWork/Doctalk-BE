@@ -1,11 +1,13 @@
 package com.capstone.domain.task.entity;
 
+import com.capstone.domain.task.message.TaskStatus;
 import com.capstone.global.entity.BaseDocument;
 import lombok.*;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.List;
 
 @Document(collection = "task")
@@ -20,12 +22,21 @@ public class Task extends BaseDocument {
     private String projectId;
     private String title;
     private String currentVersion;
-    private String status;
+    private TaskStatus status;
     private List<String> editors;
     private List<Version> versionHistory;
     private LocalDate deadline;
-    public void updateStatus(String status){
+    private LocalDate completedAt;
+
+    public void updateStatus(TaskStatus status){
         this.status = status;
+        if (status == TaskStatus.COMPLETED) {
+            if (this.completedAt == null) {
+                this.completedAt = LocalDate.now(ZoneId.of("Asia/Seoul"));
+            }
+        } else {
+            this.completedAt = null;
+        }
     }
 
     public void updateCurrentVersion(String currentVersion){
@@ -36,11 +47,15 @@ public class Task extends BaseDocument {
         this.versionHistory.add(version);
     }
 
-    public void updateInfo(String title, LocalDate deadline, String currentVersion,List<String> editors)
-    {
+    public void updateInfo(String title, LocalDate deadline, String currentVersion,List<String> editors) {
         this.title = title;
         this.deadline = deadline;
         this.currentVersion = currentVersion;
         this.editors = editors;
+    }
+
+    public boolean isCompletedOnTime() {
+        if (completedAt == null || deadline == null) return false;
+        return !completedAt.isAfter(deadline);
     }
 }

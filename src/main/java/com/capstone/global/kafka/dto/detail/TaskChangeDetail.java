@@ -2,6 +2,7 @@ package com.capstone.global.kafka.dto.detail;
 
 import com.capstone.domain.task.entity.Task;
 import com.capstone.domain.task.entity.Version;
+import com.capstone.domain.task.message.TaskStatus;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -18,7 +19,7 @@ import java.util.List;
 @AllArgsConstructor
 public class TaskChangeDetail extends ChangeDetail<List<String>>{
     private String version;
-    private String status;
+    private TaskStatus status;
     private LocalDate deadline;
 
     public static TaskChangeDetail from(Task task) {
