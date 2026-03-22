@@ -1,96 +1,111 @@
 package com.capstone.global.jwt;
 
-import com.capstone.domain.auth.exception.InvalidTokenException;
-import com.capstone.domain.auth.token.message.TokenMessages;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import org.springframework.http.ResponseCookie;
-import org.springframework.security.web.csrf.CsrfToken;
+import org.springframework.security.jackson2.CoreJackson2Module;
+import org.springframework.security.oauth2.client.jackson2.OAuth2ClientJackson2Module;
 import org.springframework.stereotype.Component;
 
+import java.io.IOException;
 import java.util.Arrays;
+import java.util.Base64;
 import java.util.Optional;
+
 
 @Component
 public class CookieUtil {
-    private static final int COOKIE_EXPIRE_TIME = 30 * 60; // 30분
-    private static final int ACCESS_COOKIE_MAX_AGE = 15 * 60; // 15분
+    public static final int COOKIE_EXPIRE_TIME = 30 * 60; // 30분
+    private static final ObjectMapper objectMapper = new ObjectMapper()
+            .registerModule(new CoreJackson2Module())
+            .registerModule(new OAuth2ClientJackson2Module());
 
     public Cookie createCookie(String key, String value) {
-        return createCookie(key, value, COOKIE_EXPIRE_TIME);
-    }
-
-    //TODO: 임시 설정
-    public Cookie createCookie(String key, String value, int maxAgeSeconds) {
         Cookie cookie = new Cookie(key, value);
         cookie.setPath("/");
-        cookie.setMaxAge(maxAgeSeconds);
+        cookie.setMaxAge(COOKIE_EXPIRE_TIME);
         cookie.setHttpOnly(true);
-        cookie.setSecure(false);// 임시 false
-        cookie.setAttribute("SameSite", "LAX"); //임시 코드
+        cookie.setSecure(true);  // HTTPS 요청에만 secure 설정
+        cookie.setAttribute("SameSite", "Strict");
         return cookie;
     }
 
-    public Cookie createAccessCookie(String accessToken) {
-        return createCookie("access", accessToken, ACCESS_COOKIE_MAX_AGE);
+    public static void expireCookie(
+            HttpServletResponse res, String name, String path,
+            boolean httpOnly, boolean secure, String sameSite
+    ) {
+        Cookie cookie = new Cookie(name, "");
+        cookie.setPath(path);
+        cookie.setHttpOnly(httpOnly);
+        cookie.setSecure(secure);
+        cookie.setMaxAge(0);
+
+        cookie.setAttribute("SameSite", sameSite);
+        res.addCookie(cookie);
     }
 
-    public ResponseCookie createResponseCookie(String refreshToken){
-        return ResponseCookie.from("refresh", refreshToken)
-                .httpOnly(true)
-                .secure(true)
-                .sameSite("Strict") // CSRF 방어
-                .path("/")      // 모든 경로에서 유효
-                .maxAge(COOKIE_EXPIRE_TIME) // 7일 유지
-                .build();
-    }
-
-    public Cookie createCsrfCookie(HttpServletRequest request, HttpServletResponse response){
-        CsrfToken csrfToken = (CsrfToken) request.getAttribute("_csrf");
-        Cookie csrfCookie = new Cookie("XSRF-TOKEN", csrfToken.getToken());
-        csrfCookie.setSecure(false);
-        csrfCookie.setPath("/");
-        response.addCookie(csrfCookie);
-
-        return csrfCookie;
-    }
-
-    public static void deleteCookie(HttpServletRequest request, HttpServletResponse response, String name) {
-        Optional.ofNullable(request.getCookies())
-                .ifPresent(cookies -> Arrays.stream(cookies)
-                        .filter(cookie -> name.equals(cookie.getName()))
-                        .forEach(cookie -> {
-                            cookie.setValue("");  // 필요하지 않음, setMaxAge(0)으로 충분함
-                            cookie.setPath("/");
-                            cookie.setMaxAge(0);  // 쿠키 삭제
-                            cookie.setHttpOnly(true);
-                            cookie.setSecure(request.isSecure());
-                            response.addCookie(cookie);
-                        }));
-    }
-
-    public static Optional<String> getRefreshTokenFromRequest(HttpServletRequest request) {
+    public static String getAccessTokenFromRequest(HttpServletRequest request) {
         if (request.getCookies() == null) {
-            return Optional.empty();
+            return null;
+        }
+        return Arrays.stream(request.getCookies())
+                .filter(cookie -> "access".equals(cookie.getName()))
+                .map(Cookie::getValue)
+                .findFirst()
+                .orElse(null);  // Optional을 String으로
+    }
+
+    public static String getRefreshTokenFromRequest(HttpServletRequest request) {
+        if (request.getCookies() == null) {
+            return null;
         }
         return Arrays.stream(request.getCookies())
                 .filter(cookie -> "refresh".equals(cookie.getName()))
                 .map(Cookie::getValue)
-                .findFirst();
+                .findFirst()
+                .orElse(null);  // Optional을 String으로
     }
 
-    public static String findTokenOrThrow(HttpServletRequest request){
-        return getRefreshTokenFromRequest(request)
-                .orElseThrow(() -> new InvalidTokenException(TokenMessages.REFRESH_NOT_FOUND));
-    }
-    public static Optional<String> getAccessTokenFromRequest(HttpServletRequest request) {
-        if (request.getCookies() == null) {
-            return Optional.empty();
+    public static Optional<Cookie> getCookie(HttpServletRequest request, String name) {
+        Cookie[] cookies = request.getCookies();
+        if (cookies != null) {
+            for (Cookie cookie : cookies) {
+                if (cookie.getName().equals(name)) {
+                    return Optional.of(cookie);
+                }
+            }
         }
-        return Arrays.stream(request.getCookies())
-            .filter(cookie -> "access".equals(cookie.getName()))
-            .map(Cookie::getValue)
-            .findFirst();
+        return Optional.empty();
+    }
+
+    // TODO: setDomain
+    public static void addCookie(HttpServletResponse response, String name, String value, int maxAge) {
+        Cookie cookie = new Cookie(name, value);
+        cookie.setMaxAge(maxAge);
+        cookie.setPath("/");
+        // cookie.setDomain("");
+        cookie.setHttpOnly(true);
+        cookie.setSecure(true);
+        cookie.setAttribute("SameSite", "Lax");
+        response.addCookie(cookie);
+    }
+
+
+    public static void deleteCookie(HttpServletRequest request, HttpServletResponse response, String name) {
+        Cookie[] cookies = request.getCookies();
+        if (cookies != null) {
+            for (Cookie cookie : cookies) {
+                if (cookie.getName().equals(name)) {
+                    cookie.setValue("");
+                    cookie.setPath("/");
+                    cookie.setMaxAge(0);
+                    cookie.setSecure(true);
+                    cookie.setAttribute("SameSite", "None");
+                    response.addCookie(cookie);
+                }
+            }
+        }
     }
 }
