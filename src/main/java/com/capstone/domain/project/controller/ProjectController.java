@@ -40,7 +40,6 @@ public class ProjectController implements ProjectControllerDocs {
     public ResponseEntity<ApiResponse<Project>> registerProject(
             @AuthenticationPrincipal CustomUserDetails customUserDetails,
             @Valid @RequestBody ProjectSaveRequest projectSaveRequest){
-
         return ResponseEntity.ok(ApiResponse.onSuccess(projectService.processRegister(customUserDetails, projectSaveRequest)));
     }
 
