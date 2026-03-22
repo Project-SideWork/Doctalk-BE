@@ -85,10 +85,18 @@ dependencies {
     //rate limiting
     implementation "com.bucket4j:bucket4j_jdk17-core:8.13.0"
     implementation "com.bucket4j:bucket4j_jdk17-redisson:8.13.0"
-
-    // build.gradle
-    implementation 'com.github.ben-manes.caffeine:caffeine'
-    implementation 'org.springframework.boot:spring-boot-starter-cache'
+//
+//    // build.gradle
+//    implementation 'com.github.ben-manes.caffeine:caffeine'
+//    implementation 'org.springframework.boot:spring-boot-starter-cache'
+//
+//    implementation 'org.springframework.cloud:spring-cloud-starter-openfeign'
+//
+//    dependencyManagement {
+//        imports {
+//            mavenBom "org.springframework.cloud:spring-cloud-dependencies:2023.0.0"
+//        }
+//    }
 }
 
 tasks.named('test') {

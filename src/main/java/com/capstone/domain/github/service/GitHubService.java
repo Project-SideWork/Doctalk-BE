@@ -11,9 +11,13 @@ import com.capstone.domain.project.entity.Project;
 import com.capstone.domain.project.entity.ProjectOrganization;
 import com.capstone.domain.project.repository.ProjectRepository;
 import com.capstone.global.security.CustomUserDetails;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpClientErrorException;
@@ -530,4 +534,18 @@ public class GitHubService {
 
         return new ReviewStatsResponse(totalReviewStatsDto, userReviewStatsDtoList);
     }
+//
+//    @Cacheable(value = "githubAccessToken", key = "#userId")
+//    public String getGithubToken(Long userId) {
+//        return authServiceClient.getGithubToken(userId);
+//    }
+//
+//    @CacheEvict(value = "githubAccessToken", key = "#userId")
+//    public void evictGithubToken(Long userId) {}
+//
+//    @CachePut(value = "githubAccessToken", key = "#userId")
+//    public String refreshGithubToken(Long userId) {
+//        return authServiceClient.getGithubToken(userId);
+//    }
+
 }
