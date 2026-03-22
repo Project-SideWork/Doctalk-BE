@@ -17,7 +17,6 @@ import java.util.List;
 @Component
 @RequiredArgsConstructor
 public class ProjectAuthorityEvaluator {
-
     private final ProjectUserRepository projectUserRepository;
     private final DocumentRepository documentRepository;
     private final TaskRepository taskRepository;
