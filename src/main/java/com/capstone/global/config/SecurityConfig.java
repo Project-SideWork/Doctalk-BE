@@ -43,12 +43,8 @@ public class SecurityConfig {
 	private final OAuth2AuthenticationFailureHandler oAuth2AuthenticationFailureHandler;
 	private final HttpCookieOAuth2AuthorizationRequestRepository httpCookieOAuth2AuthorizationRequestRepository;
 
-	private final AuthenticationConfiguration authenticationConfiguration;
 	private final JwtUtil jwtUtil;
 	private final UserDetailsService userDetailsService;
-	private final UserRepository userRepository;
-	private final CookieUtil cookieUtil;
-	private final RateLimitFilter rateLimitFilter;
 
 	@Bean
 	public AuthenticationManager authenticationManager(AuthenticationConfiguration configuration) throws Exception {
@@ -100,7 +96,6 @@ public class SecurityConfig {
 		http
 			.addFilterBefore(new JwtFilter(jwtUtil, userDetailsService), UsernamePasswordAuthenticationFilter.class)
 			// .addFilterAfter(rateLimitFilter, JwtFilter.class)
-			.addFilterAt(new LoginFilter(authenticationManager(authenticationConfiguration), jwtUtil, cookieUtil, userRepository), UsernamePasswordAuthenticationFilter.class)
 			.addFilterBefore(new CustomLogoutFilter(jwtUtil), LogoutFilter.class);
 
 		http.sessionManagement(
