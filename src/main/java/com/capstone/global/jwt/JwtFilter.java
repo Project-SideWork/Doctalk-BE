@@ -11,13 +11,12 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
+import org.springframework.util.AntPathMatcher;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
-import java.io.PrintWriter;
 import java.util.List;
-
-import static org.springframework.integration.IntegrationPatternType.chain;
 
 @RequiredArgsConstructor
 @Slf4j
@@ -25,66 +24,72 @@ public class JwtFilter extends OncePerRequestFilter {
     private final JwtUtil jwtUtil;
     private final UserDetailsService userDetailsService;
 
-    private static final List<String> EXCLUDE_URLS = List.of(
+    private static final List<String> ALLOW_ORIGINS = List.of(
             "/api/oauth2/",
             "/api/register/",
             "/api/login",
             "/api/swagger-ui/",
             "/api/v3/api-docs/",
-            "/api/csrf-token",
             "/api/project/invite/accept"
     );
+    private final AntPathMatcher pathMatcher = new AntPathMatcher();
 
 
     @Override
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
-        String accessToken = request.getHeader("Authorization");
-        String token = accessToken;
+    protected void doFilterInternal(
+            HttpServletRequest request,
+            HttpServletResponse response,
+            FilterChain filterChain
+    ) throws ServletException, IOException {
+        String requestUri = request.getRequestURI();
+        String accessToken = CookieUtil.getAccessTokenFromRequest(request);
 
-        HttpServletRequest httpRequest = (HttpServletRequest) request;
-        String path = httpRequest.getRequestURI();
-
-        if (EXCLUDE_URLS.stream().anyMatch(path::startsWith)) {
+        if (isAllowedPath(requestUri)) {
             filterChain.doFilter(request, response);
             return;
         }
 
-
-        if (accessToken == null) {
-            token = CookieUtil.getAccessTokenFromRequest(request).orElse(null);
-            if (token == null || token.isEmpty()) {
-                filterChain.doFilter(request, response);
-                return;
-            }
-        }
-        else {
-            if (token.startsWith("Bearer ")) {
-                token = token.substring(7);
-            }
-        }
-
-        log.info("token: {}", token);
-        log.info("access: {}", accessToken);
-        log.info("role: {}", jwtUtil.getCategory(token));
-
-
-        try {
-            jwtUtil.isExpired(token);
-        } catch (ExpiredJwtException e) {
-            PrintWriter writer = response.getWriter();
-            writer.print("access token expired");
-            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+        if (accessToken == null || accessToken.isEmpty()) {
+            log.debug("access 토큰 없음, URI={}", requestUri);
+            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "인증이 필요합니다.");
             return;
         }
 
-        String email = jwtUtil.getEmail(token);
 
+        try {
+            if (jwtUtil.isExpired(accessToken)) {
+                log.debug("JWT 토큰 만료됨");
+                response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "토큰이 만료되었습니다.");
+                return;
+            }
 
-        UserDetails userDetails = userDetailsService.loadUserByUsername(email);
+            String email = jwtUtil.getEmail(accessToken);
+            UserDetails userDetails = userDetailsService.loadUserByUsername(email);
 
-        UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
-        SecurityContextHolder.getContext().setAuthentication(authToken);
+            UsernamePasswordAuthenticationToken authentication =
+                    new UsernamePasswordAuthenticationToken(
+                            userDetails,
+                            null,
+                            userDetails.getAuthorities()
+                    );
+            authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+            SecurityContextHolder.getContext().setAuthentication(authentication);
+
+        } catch (ExpiredJwtException e) {
+            log.debug("JWT 토큰 만료됨");
+            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "토큰이 만료되었습니다.");
+            return;
+        } catch (Exception e) {
+            log.error("JWT 토큰 검증 실패", e);
+            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "유효하지 않은 토큰입니다.");
+            return;
+        }
 
         filterChain.doFilter(request, response);
+    }
+
+    private boolean isAllowedPath(String uri) {
+        return ALLOW_ORIGINS.stream()
+                .anyMatch(pattern -> pathMatcher.match(pattern, uri));
     }
 }
