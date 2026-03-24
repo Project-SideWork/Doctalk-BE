@@ -58,8 +58,8 @@
 </div>
 
 <script>
-  const socket = new WebSocket("ws://localhost:8080/ws/task");
-  const serverUrl = "http://localhost:8080/file"; // 서버 URL
+  const socket = new WebSocket("ws://localhost:8081/ws/task");
+  const serverUrl = "http://localhost:8081/file"; // 서버 URL
   const editor = document.getElementById("editor");
 
   socket.onopen = function () {

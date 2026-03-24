@@ -7,6 +7,7 @@ import com.capstone.domain.oauth2.service.CustomOAuth2UserService;
 import com.capstone.domain.user.repository.UserRepository;
 import com.capstone.global.jwt.*;
 import com.capstone.global.ratelimit.filter.RateLimitFilter;
+import com.capstone.global.security.SecurityConstants;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -43,12 +44,8 @@ public class SecurityConfig {
 	private final OAuth2AuthenticationFailureHandler oAuth2AuthenticationFailureHandler;
 	private final HttpCookieOAuth2AuthorizationRequestRepository httpCookieOAuth2AuthorizationRequestRepository;
 
-	private final AuthenticationConfiguration authenticationConfiguration;
 	private final JwtUtil jwtUtil;
 	private final UserDetailsService userDetailsService;
-	private final UserRepository userRepository;
-	private final CookieUtil cookieUtil;
-	private final RateLimitFilter rateLimitFilter;
 
 	@Bean
 	public AuthenticationManager authenticationManager(AuthenticationConfiguration configuration) throws Exception {
@@ -86,9 +83,7 @@ public class SecurityConfig {
 				})
 			)
 			.authorizeHttpRequests(requests -> requests
-				.requestMatchers("/oauth2/**","/register/*","/login", "/swagger-ui/**",    // Swagger UI 관련 경로
-					"/v3/api-docs/**","/csrf-token", "/project/**", "/socket/**","/document/**", "/editing", "/notification/**",
-					"/mypage/email/avail","/mypage/password/new","/mypage/email/check", "/project/invite/accept", "/oauth/login", "/health", "/actuator/health", "/github/webhook").permitAll()
+				.requestMatchers(SecurityConstants.PUBLIC_PATHS.toArray(new String[0])).permitAll()
 				.anyRequest().authenticated()
 			)
 			.oauth2Login(configure ->
@@ -100,7 +95,6 @@ public class SecurityConfig {
 		http
 			.addFilterBefore(new JwtFilter(jwtUtil, userDetailsService), UsernamePasswordAuthenticationFilter.class)
 			// .addFilterAfter(rateLimitFilter, JwtFilter.class)
-			.addFilterAt(new LoginFilter(authenticationManager(authenticationConfiguration), jwtUtil, cookieUtil, userRepository), UsernamePasswordAuthenticationFilter.class)
 			.addFilterBefore(new CustomLogoutFilter(jwtUtil), LogoutFilter.class);
 
 		http.sessionManagement(
