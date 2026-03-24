@@ -1,9 +1,9 @@
 package com.capstone.domain.project.dto.request;
 
 import jakarta.annotation.Nullable;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
-import org.springframework.validation.annotation.Validated;
 
 import java.util.List;
 
@@ -19,6 +19,6 @@ public record ProjectSaveRequest(
         @Nullable
         List<String> invitedEmails,
         @Nullable
-        @Validated
+        @Valid
         List<ProjectGithubInfo> githubInfos
 ){}
