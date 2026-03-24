@@ -7,6 +7,7 @@ import com.capstone.domain.oauth2.service.CustomOAuth2UserService;
 import com.capstone.domain.user.repository.UserRepository;
 import com.capstone.global.jwt.*;
 import com.capstone.global.ratelimit.filter.RateLimitFilter;
+import com.capstone.global.security.SecurityConstants;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -82,9 +83,7 @@ public class SecurityConfig {
 				})
 			)
 			.authorizeHttpRequests(requests -> requests
-				.requestMatchers("/oauth2/**","/register/*","/login", "/swagger-ui/**",    // Swagger UI 관련 경로
-					"/v3/api-docs/**","/csrf-token", "/project/**", "/socket/**","/document/**", "/editing", "/notification/**",
-					"/mypage/email/avail","/mypage/password/new","/mypage/email/check", "/project/invite/accept", "/oauth/login", "/health", "/actuator/health", "/github/webhook").permitAll()
+				.requestMatchers(SecurityConstants.PUBLIC_PATHS.toArray(new String[0])).permitAll()
 				.anyRequest().authenticated()
 			)
 			.oauth2Login(configure ->

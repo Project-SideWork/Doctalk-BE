@@ -1,5 +1,6 @@
 package com.capstone.global.jwt;
 
+import com.capstone.global.security.SecurityConstants;
 import io.jsonwebtoken.ExpiredJwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -23,15 +24,6 @@ import java.util.List;
 public class JwtFilter extends OncePerRequestFilter {
     private final JwtUtil jwtUtil;
     private final UserDetailsService userDetailsService;
-
-    private static final List<String> ALLOW_ORIGINS = List.of(
-            "/api/oauth2/",
-            "/api/register/",
-            "/api/login",
-            "/api/swagger-ui/",
-            "/api/v3/api-docs/",
-            "/api/project/invite/accept"
-    );
     private final AntPathMatcher pathMatcher = new AntPathMatcher();
 
 
@@ -63,6 +55,11 @@ public class JwtFilter extends OncePerRequestFilter {
                 return;
             }
 
+            if (!"access".equals(jwtUtil.getCategory(accessToken))) {
+                response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "유효하지 않은 토큰입니다.");
+                return;
+            }
+
             String email = jwtUtil.getEmail(accessToken);
             UserDetails userDetails = userDetailsService.loadUserByUsername(email);
 
@@ -89,7 +86,7 @@ public class JwtFilter extends OncePerRequestFilter {
     }
 
     private boolean isAllowedPath(String uri) {
-        return ALLOW_ORIGINS.stream()
+        return SecurityConstants.PUBLIC_PATHS.stream()
                 .anyMatch(pattern -> pathMatcher.match(pattern, uri));
     }
 }
