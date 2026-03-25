@@ -20,6 +20,8 @@ import java.util.List;
 public class User extends BaseDocument {
     @Id
     private String id;
+
+    private Long growpUserId;
     private String name;
     private String email;
     private String profileImage;

@@ -28,7 +28,7 @@ public class CustomUserDetails implements UserDetails {
         return user.getEmail();
     }
 
-    public Long getGrowpId() { return user.getGrowpId(); }
+    public Long getGrowpId() { return user.getGrowpUserId(); }
 
     public Long getGithubId() {
         return 1L;
