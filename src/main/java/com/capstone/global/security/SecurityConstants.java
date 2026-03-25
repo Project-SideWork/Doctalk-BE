@@ -19,6 +19,7 @@ public class SecurityConstants {
             "/oauth/login",
             "/health",
             "/actuator/health",
-            "/github/webhook"
+            "/github/webhook",
+            "/error"
     );
 }

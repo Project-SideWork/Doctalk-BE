@@ -17,7 +17,6 @@ import org.springframework.util.AntPathMatcher;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
-import java.util.List;
 
 @RequiredArgsConstructor
 @Slf4j
@@ -86,7 +85,8 @@ public class JwtFilter extends OncePerRequestFilter {
     }
 
     private boolean isAllowedPath(String uri) {
+        String strippedUri = uri.startsWith("/api") ? uri.substring(4) : uri;
         return SecurityConstants.PUBLIC_PATHS.stream()
-                .anyMatch(pattern -> pathMatcher.match(pattern, uri));
+                .anyMatch(pattern -> pathMatcher.match(pattern, strippedUri));
     }
 }
