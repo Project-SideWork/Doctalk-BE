@@ -7,17 +7,15 @@ import com.capstone.domain.github.dto.response.GithubIssueResponse;
 import com.capstone.domain.github.dto.response.GithubPrResponse;
 
 import com.capstone.domain.github.dto.response.ReviewCommentResponse;
+import com.capstone.domain.github.util.GithubInformationManager;
 import com.capstone.domain.project.entity.Project;
 import com.capstone.domain.project.entity.ProjectOrganization;
 import com.capstone.domain.project.repository.ProjectRepository;
-import com.capstone.global.security.CustomUserDetails;
+import com.capstone.global.aop.annotation.RequiredGithubInformation;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.cache.annotation.CacheEvict;
-import org.springframework.cache.annotation.CachePut;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpClientErrorException;
@@ -29,19 +27,19 @@ import static com.capstone.domain.github.util.HttpSetter.githubEntity;
 @Service
 @RequiredArgsConstructor
 @Slf4j
+@RequiredGithubInformation
 public class GitHubService {
     private final ProjectRepository projectRepository;
+    private final GithubInformationManager githubTokenManager;
 
     @Value("${github.api-url}")
     private String apiUrl;
 
-    @Value("${github.token}")
-    private String token;
-
     private final RestTemplate restTemplate;
 
-    public void createOrganizationRepositoryOnGithub(OrgRepoRequest request) {
+    public void createOrganizationRepositoryOnGithub(Long growpUserId, OrgRepoRequest request) {
         String url = String.format("%s/orgs/%s/repos", apiUrl, request.orgName());
+        String token = githubTokenManager.getToken(growpUserId);
 
         Map<String, Object> body = new HashMap<>();
         body.put("name", request.repoName());
@@ -116,8 +114,9 @@ public class GitHubService {
 //        }
 //    }
 
-    public List<GitHubOrgDto> fetchMyGithubOrganizations() {
+    public List<GitHubOrgDto> fetchMyGithubOrganizations(Long growpUserId) {
         String url = String.format("%s/user/orgs", apiUrl);
+        String token = githubTokenManager.getToken(growpUserId);
 
         ResponseEntity<GitHubOrgDto[]> response = restTemplate.exchange(
                 url,
@@ -138,15 +137,16 @@ public class GitHubService {
         return responseOrgs;
     }
 
-    public GithubIssueResponse fetchGithubIssuesByProject(String teamId) {
+    public GithubIssueResponse fetchGithubIssuesByProject(Long growpUserId, String teamId) {
         Project project = projectRepository.findById(teamId).orElseThrow();
+        String token = githubTokenManager.getToken(growpUserId);
 
         List<GitHubIssueDto> all = new ArrayList<>();
 
         for (ProjectOrganization org : Optional.ofNullable(project.getProjectOrganizations()).orElse(Collections.emptyList())) {
             String organization = org.getOrgName();
             for (String repoName : org.getOrgRepos()) {
-                all.addAll(fetchIssues(organization, repoName));
+                all.addAll(fetchIssues(growpUserId, organization, repoName));
             }
         }
 
@@ -155,8 +155,9 @@ public class GitHubService {
         return new GithubIssueResponse(all.size(), all);
     }
 
-    private List<GitHubIssueDto> fetchIssues(String organization, String repo) {
+    private List<GitHubIssueDto> fetchIssues(Long growpUserId, String organization, String repo) {
         List<GitHubIssueDto> acc = new ArrayList<>();
+        String token = githubTokenManager.getToken(growpUserId);
         int page = 1;
         final int perPage = 100;
 
@@ -183,7 +184,7 @@ public class GitHubService {
 
         return acc;
     }
-    private List<GitHubIssueDto> fetchAllIssues(String organization, String repo) {
+    private List<GitHubIssueDto> fetchAllIssues(String token, String organization, String repo) {
         List<GitHubIssueDto> acc = new ArrayList<>();
         int page = 1;
         final int perPage = 100;
@@ -232,8 +233,10 @@ public class GitHubService {
 //    }
 
 
-    public List<GitHubPullRequestDto> fetchPullRequestsFromRepository(String organization, String repo) {
+    public List<GitHubPullRequestDto> fetchPullRequestsFromRepository(Long growpUserId, String organization, String repo) {
         String url = String.format("%s/repos/%s/%s/pulls?state=all", apiUrl, organization, repo);
+        String token = githubTokenManager.getToken(growpUserId);
+
         ResponseEntity<GitHubPullRequestDto[]> response = restTemplate.exchange(
                 url,
                 HttpMethod.GET,
@@ -247,22 +250,23 @@ public class GitHubService {
 
     }
 
-    public GithubPrResponse fetchReviewRequestPullRequestsInProject(CustomUserDetails userDetails, String projectId) {
+    public GithubPrResponse fetchReviewRequestPullRequestsInProject(Long growpUserId, String projectId) {
         Project project = projectRepository.findById(projectId).orElseThrow();
+        String token = githubTokenManager.getToken(growpUserId);
 
         List<GitHubPullRequestDto> all = new ArrayList<>();
 
         for (ProjectOrganization org : Optional.ofNullable(project.getProjectOrganizations()).orElse(Collections.emptyList())) {
             String organization = org.getOrgName();
             for (String repoName : org.getOrgRepos()) {
-                all.addAll(fetchReviewRequestedPullRequests(organization, repoName, "kamillcream"));
+                all.addAll(fetchReviewRequestedPullRequests(token, organization, repoName, "kamillcream"));
             }
         }
 
         return new GithubPrResponse(all.size(), all);
     }
 
-    private List<GitHubPullRequestDto> fetchReviewRequestedPullRequests(String organization, String repo, String username) {
+    private List<GitHubPullRequestDto> fetchReviewRequestedPullRequests(String token, String organization, String repo, String username) {
         String url = String.format(
                 "%s/search/issues?q=type:pr+state:open+repo:%s/%s+review-requested:%s",
                 apiUrl, organization, repo, username
@@ -282,7 +286,7 @@ public class GitHubService {
         return response.getBody().getItems();
     }
 
-    public GitHubOrgEventResponse fetchGithubEventsByProject(String projectId) {
+    public GitHubOrgEventResponse fetchGithubEventsByProject(Long growpUserId, String projectId) {
         Project project = projectRepository.findById(projectId).orElseThrow();
 
         List<GitHubOrgEventDto> all = new ArrayList<>();
@@ -293,7 +297,7 @@ public class GitHubService {
         ).toList();
 
         for (String orgName: orgNames) {
-            all.addAll(fetchOrgIssuePrEvents(orgName));
+            all.addAll(fetchOrgIssuePrEvents(growpUserId, orgName));
         }
 
         all.sort(Comparator.comparing(GitHubOrgEventDto::getCreatedAt).reversed());
@@ -301,10 +305,12 @@ public class GitHubService {
         return new GitHubOrgEventResponse(all.size(), all);
     }
 
-    private List<GitHubOrgEventDto> fetchOrgIssuePrEvents(String org) {
+    private List<GitHubOrgEventDto> fetchOrgIssuePrEvents(Long growpUserId, String org) {
         final int perPage = 100;
         final int maxPages = 3;
         int page = 1;
+
+        String token = githubTokenManager.getToken(growpUserId);
 
         List<GitHubOrgEventDto> acc = new ArrayList<>();
 
@@ -390,8 +396,9 @@ public class GitHubService {
         org.setUrl(htmlUrl);
     }
 
-    public List<ContributionMetricWithShareDto> aggregateMyGithubStatsByProject(String projectId, String username) {
+    public List<ContributionMetricWithShareDto> aggregateMyGithubStatsByProject(Long growpUserId, String projectId, String username) {
         Project project = projectRepository.findById(projectId).orElseThrow();
+        String token = githubTokenManager.getToken(growpUserId);
 
         int totIssues = 0, totPrs = 0;
         int myIssues = 0, myPrs = 0;
@@ -403,13 +410,13 @@ public class GitHubService {
 
         for (String orgName : orgNames) {
             // 전체
-            totIssues  += searchIssuesPrCountOrg(orgName, "is:issue", null);
-            totPrs     += searchIssuesPrCountOrg(orgName, "is:pr", null);
+            totIssues  += searchIssuesPrCountOrg(token, orgName, "is:issue", null);
+            totPrs     += searchIssuesPrCountOrg(token, orgName, "is:pr", null);
 
             // 내 기여
             String author = "author:" + username;
-            myIssues   += searchIssuesPrCountOrg(orgName, "is:issue", author);
-            myPrs      += searchIssuesPrCountOrg(orgName, "is:pr", author);
+            myIssues   += searchIssuesPrCountOrg(token, orgName, "is:issue", author);
+            myPrs      += searchIssuesPrCountOrg(token, orgName, "is:pr", author);
         }
 
         return List.of(
@@ -418,7 +425,7 @@ public class GitHubService {
         );
     }
 
-    private int searchIssuesPrCountOrg(String org, String kindQualifier, String extra) {
+    private int searchIssuesPrCountOrg(String token, String org, String kindQualifier, String extra) {
         // org 단위 검색
         String q = "%s+org:%s".formatted(kindQualifier, org);
         if (extra != null && !extra.isBlank()) q += "+" + extra;
@@ -438,8 +445,9 @@ public class GitHubService {
     }
 
 
-    public List<ReviewCommentResponse> fetchReviewCommentsFromRepository(String organization, String repo) {
+    public List<ReviewCommentResponse> fetchReviewCommentsFromRepository(Long growpUserId, String organization, String repo) {
         String url = String.format("%s/repos/%s/%s/pulls/comments", apiUrl, organization, repo);
+        String token = githubTokenManager.getToken(growpUserId);
 
         try {
             ResponseEntity<GitHubReviewCommentDto[]> response = restTemplate.exchange(
@@ -476,13 +484,15 @@ public class GitHubService {
         }
     }
 
-    public ReviewStatsResponse getRepositoryReviewStats(String organization, String repo, int prCount) {
+    public ReviewStatsResponse getRepositoryReviewStats(Long growpUserId, String organization, String repo, int prCount) {
         Map<String, UserReviewStatsDto> statsMap = new HashMap<>();
         int approved = 0;
         int changesRequested = 0;
         int commented = 0;
 
-        List<GitHubPullRequestDto> pullRequests = fetchPullRequestsFromRepository(organization, repo);
+        String token = githubTokenManager.getToken(growpUserId);
+
+        List<GitHubPullRequestDto> pullRequests = fetchPullRequestsFromRepository(growpUserId, organization, repo);
 
         for (GitHubPullRequestDto pr : pullRequests) {
             String url = String.format("%s/repos/%s/%s/pulls/%d/reviews", apiUrl, organization, repo, pr.getNumber());
