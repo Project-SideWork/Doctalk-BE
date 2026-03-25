@@ -28,7 +28,8 @@ public class CustomUserDetails implements UserDetails {
         return user.getEmail();
     }
 
-    // TODO: 추후 깃허브 계정 정보랑 연동 필요.
+    public Long getGrowpId() { return user.getGrowpId(); }
+
     public Long getGithubId() {
         return 1L;
     }
