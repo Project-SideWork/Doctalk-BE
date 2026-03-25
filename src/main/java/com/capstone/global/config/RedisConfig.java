@@ -11,6 +11,7 @@ import org.springframework.cache.CacheManager;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Primary;
 import org.springframework.data.redis.cache.RedisCacheConfiguration;
 import org.springframework.data.redis.cache.RedisCacheManager;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
@@ -37,7 +38,8 @@ public class RedisConfig {
     private String redisUrl;
 
     @Bean
-    public CacheManager cacheManager(RedisConnectionFactory factory) {
+    @Primary
+    public CacheManager redisCacheManager(RedisConnectionFactory factory) {
         RedisCacheConfiguration cacheConfig =
                 RedisCacheConfiguration.defaultCacheConfig()
                         .entryTtl(Duration.ofMinutes(10))
