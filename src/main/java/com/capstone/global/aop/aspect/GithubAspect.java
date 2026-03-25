@@ -1,6 +1,6 @@
 package com.capstone.global.aop.aspect;
 
-import com.capstone.domain.github.util.GithubTokenManager;
+import com.capstone.domain.github.util.GithubInformationManager;
 import com.capstone.global.security.CustomUserDetails;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -16,7 +16,7 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class GithubAspect {
 
-    private final GithubTokenManager githubTokenManager;
+    private final GithubInformationManager githubTokenManager;
 
     @Around("@within(com.capstone.global.aop.annotation)")
     public Object validateAndFetch(ProceedingJoinPoint joinPoint) throws Throwable {
