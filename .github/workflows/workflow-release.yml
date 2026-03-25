@@ -2,7 +2,7 @@ name: CI / CD
 
 on:
   push:
-    branches: [ main ]
+    branches: [ feat/#29-feign-api-req-caffe-cache ]
 
 jobs:
   CI:
