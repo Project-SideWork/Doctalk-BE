@@ -20,9 +20,14 @@ public class GithubAspect {
 
     @Around("@within(com.capstone.global.aop.annotation)")
     public Object validateAndFetch(ProceedingJoinPoint joinPoint) throws Throwable {
+        log.info("validateAndFetch");
         CustomUserDetails userDetails = (CustomUserDetails) SecurityContextHolder.getContext()
                 .getAuthentication()
                 .getPrincipal();
+
+        log.info("username" + userDetails.getUsername());
+        log.info("email" + userDetails.getEmail());
+        log.info("growpid" + userDetails.getGrowpId());
 
         Long growpId = userDetails.getGrowpId();
 
