@@ -115,8 +115,11 @@ public class GitHubService {
 //    }
 
     public List<GitHubOrgDto> fetchMyGithubOrganizations(Long growpUserId) {
+        log.info("fetchMyGithubOrganizations called with " + growpUserId);
+
         String url = String.format("%s/user/orgs", apiUrl);
         String token = githubTokenManager.getToken(growpUserId);
+        log.info("getToken called with " + token);
 
         ResponseEntity<GitHubOrgDto[]> response = restTemplate.exchange(
                 url,
