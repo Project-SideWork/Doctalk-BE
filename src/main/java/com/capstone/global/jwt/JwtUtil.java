@@ -42,6 +42,11 @@ public class JwtUtil {
         this.userRepository = userRepository;
     }
 
+    public Long getUserId(String token) {
+        return Jwts.parser().verifyWith(secretKey).build().parseSignedClaims(token).getPayload()
+                .get("growpUserId", Long.class);
+    }
+
     public String getEmail(String token) {
         return Jwts.parser().verifyWith(secretKey).build().parseSignedClaims(token).getPayload()
                 .get("email", String.class);
