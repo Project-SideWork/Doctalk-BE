@@ -60,6 +60,7 @@ public class JwtFilter extends OncePerRequestFilter {
 
             Long growpUserId = jwtUtil.getUserId(accessToken);
             String email = jwtUtil.getEmail(accessToken);
+            log.info("email: " + email);
 
             CustomUserDetails userDetails = new CustomUserDetails(growpUserId, email);
 
