@@ -2,7 +2,6 @@ package com.capstone.global.security;
 
 import com.capstone.domain.document.entity.Document;
 import com.capstone.domain.document.repository.DocumentRepository;
-import com.capstone.domain.project.repository.ProjectRepository;
 import com.capstone.domain.task.entity.Task;
 import com.capstone.domain.task.repository.TaskRepository;
 import com.capstone.domain.user.repository.ProjectUserRepository;
@@ -24,7 +23,7 @@ public class ProjectAuthorityEvaluator {
 
     public boolean hasPermission(String projectId, List<String> requiredRoles, Authentication auth) {
         CustomUserDetails user = (CustomUserDetails) auth.getPrincipal();
-        return projectUserRepository.findByProjectIdAndUserId(projectId, user.getEmail())
+        return projectUserRepository.findByProjectIdAndUserId(projectId, user.userId())
                 .map(member -> requiredRoles.stream()
                         .anyMatch(role -> role.equalsIgnoreCase(member.getRole())))
                 .orElse(false);

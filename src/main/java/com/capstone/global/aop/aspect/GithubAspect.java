@@ -26,12 +26,11 @@ public class GithubAspect {
                 .getPrincipal();
 
         log.info("username" + userDetails.getUsername());
-        log.info("email" + userDetails.getEmail());
-        log.info("growpid" + userDetails.getGrowpId());
+        log.info("email" + userDetails.email());
+        log.info("growpid" + userDetails.userId());
 
-        Long growpId = userDetails.getGrowpId();
 
-        githubTokenManager.ensureValidToken(growpId);
+        githubTokenManager.ensureValidToken(userDetails.userId());
 
         return joinPoint.proceed();
     }
