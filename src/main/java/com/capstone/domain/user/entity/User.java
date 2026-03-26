@@ -21,7 +21,6 @@ public class User extends BaseDocument {
     @Id
     private Long id;
 
-    private Long growpUserId;
     private String name;
     private String email;
     private String profileImage;
