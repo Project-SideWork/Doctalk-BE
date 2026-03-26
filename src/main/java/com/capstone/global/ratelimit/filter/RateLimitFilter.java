@@ -162,7 +162,7 @@ public class RateLimitFilter extends OncePerRequestFilter {
         Object principal = authentication.getPrincipal();
 
         if (principal instanceof CustomUserDetails customUserDetails) {
-            return customUserDetails.getEmail();
+            return customUserDetails.email();
         }
         return null;
     }
