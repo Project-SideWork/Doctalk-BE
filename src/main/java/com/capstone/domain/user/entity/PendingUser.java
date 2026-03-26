@@ -15,7 +15,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
 public class PendingUser extends BaseDocument {
     @Id
     private String id;
-    private String userId;
+    private Long userId;
     private String email;
     private InviteCode inviteCode;
 }
