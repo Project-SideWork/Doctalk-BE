@@ -1,5 +1,6 @@
 package com.capstone.global.jwt;
 
+import com.capstone.global.security.CustomUserDetails;
 import com.capstone.global.security.SecurityConstants;
 import io.jsonwebtoken.ExpiredJwtException;
 import jakarta.servlet.FilterChain;
@@ -36,6 +37,7 @@ public class JwtFilter extends OncePerRequestFilter {
         String accessToken = CookieUtil.getAccessTokenFromRequest(request);
 
         if (isAllowedPath(requestUri)) {
+            log.info("ALLOWED PATH ENTERED");
             filterChain.doFilter(request, response);
             return;
         }
@@ -60,7 +62,10 @@ public class JwtFilter extends OncePerRequestFilter {
             }
 
             String email = jwtUtil.getEmail(accessToken);
+            log.info("email: " + email);
             UserDetails userDetails = userDetailsService.loadUserByUsername(email);
+            log.info("UserDetails: ", userDetails.getUsername());
+            log.info("UserDetails: ", userDetails.getAuthorities());
 
             UsernamePasswordAuthenticationToken authentication =
                     new UsernamePasswordAuthenticationToken(
@@ -68,6 +73,7 @@ public class JwtFilter extends OncePerRequestFilter {
                             null,
                             userDetails.getAuthorities()
                     );
+            log.info("authentication: ", authentication.getPrincipal());
             authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
             SecurityContextHolder.getContext().setAuthentication(authentication);
 
