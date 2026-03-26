@@ -19,7 +19,7 @@ import java.util.List;
 @AllArgsConstructor
 public class User extends BaseDocument {
     @Id
-    private String id;
+    private Long id;
 
     private Long growpUserId;
     private String name;

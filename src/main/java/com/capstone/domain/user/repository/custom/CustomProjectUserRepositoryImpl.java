@@ -63,7 +63,7 @@ public class CustomProjectUserRepositoryImpl implements CustomProjectUserReposit
     }
 
     @Override
-    public boolean existsByProjectIdAndUserId(String projectId, String userId) {
+    public boolean existsByProjectIdAndUserId(String projectId, Long userId) {
         Query query = new Query();
         query.addCriteria(
             Criteria.where("projectId").is(projectId)
