@@ -64,8 +64,8 @@ public class JwtFilter extends OncePerRequestFilter {
             String email = jwtUtil.getEmail(accessToken);
             log.info("email: " + email);
             UserDetails userDetails = userDetailsService.loadUserByUsername(email);
-            log.info("UserDetails: ", userDetails.getUsername());
-            log.info("UserDetails: ", userDetails.getAuthorities());
+            log.info("UserDetails: " + userDetails.getUsername());
+            log.info("UserDetails: " + userDetails.getAuthorities());
 
             UsernamePasswordAuthenticationToken authentication =
                     new UsernamePasswordAuthenticationToken(
@@ -73,7 +73,7 @@ public class JwtFilter extends OncePerRequestFilter {
                             null,
                             userDetails.getAuthorities()
                     );
-            log.info("authentication: ", authentication.getPrincipal());
+            log.info("authentication: " + authentication.getPrincipal());
             authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
             SecurityContextHolder.getContext().setAuthentication(authentication);
 
