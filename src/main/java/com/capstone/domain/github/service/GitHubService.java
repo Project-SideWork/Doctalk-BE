@@ -118,6 +118,7 @@ public class GitHubService {
         log.info("fetchMyGithubOrganizations called with " + growpUserId);
 
         String url = String.format("%s/user/orgs", apiUrl);
+        githubTokenManager.ensureValidToken(growpUserId);
         String token = githubTokenManager.getToken(growpUserId);
         log.info("getToken called with " + token);
 
