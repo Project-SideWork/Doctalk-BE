@@ -13,7 +13,6 @@ import java.util.Objects;
 @RequiredArgsConstructor
 @Slf4j
 public class GithubInformationManager {
-
     private final Cache<Long, GithubInfoResponse> githubInfoCache;
     private final GithubTokenClient githubTokenClient;
 
@@ -31,5 +30,9 @@ public class GithubInformationManager {
     public String getToken(Long userId) {
         log.info("getTOken" + githubInfoCache.getIfPresent(userId).githubAccessToken());
         return Objects.requireNonNull(githubInfoCache.getIfPresent(userId)).githubAccessToken();
+    }
+
+    public Long getGithubId(Long userId) {
+        return Objects.requireNonNull(githubInfoCache.getIfPresent(userId)).githubId();
     }
 }
