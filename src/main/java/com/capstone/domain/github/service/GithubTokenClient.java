@@ -9,6 +9,6 @@ import org.springframework.web.bind.annotation.RequestHeader;
 @FeignClient(name = "user-service", url = "${auth.service.url}", configuration = FeignConfig.class)
 public interface GithubTokenClient {
 
-    @GetMapping("/api/v1/user/github")
+    @GetMapping("/api/v1/users/github")
     GithubInfoResponse getGithubToken(@RequestHeader("X-User-Id") Long userId);
 }
