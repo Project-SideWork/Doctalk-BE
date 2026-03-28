@@ -18,17 +18,11 @@ public class GithubAspect {
 
     private final GithubInformationManager githubTokenManager;
 
-    @Around("@within(com.capstone.global.aop.annotation)")
+    @Around("@within(com.capstone.global.aop.annotation.RequiredGithubInformation)")
     public Object validateAndFetch(ProceedingJoinPoint joinPoint) throws Throwable {
-        log.info("validateAndFetch");
         CustomUserDetails userDetails = (CustomUserDetails) SecurityContextHolder.getContext()
                 .getAuthentication()
                 .getPrincipal();
-
-        log.info("username" + userDetails.getUsername());
-        log.info("email" + userDetails.email());
-        log.info("growpid" + userDetails.userId());
-
 
         githubTokenManager.ensureValidToken(userDetails.userId());
 
