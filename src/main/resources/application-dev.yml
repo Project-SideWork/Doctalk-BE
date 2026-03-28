@@ -152,6 +152,11 @@ openai:
 IMP_API_KEY: ${IMP_API_KEY}
 IMP_API_SECRET: ${IMP_API_SECRET}
 
+
+auth:
+  service:
+    url: http://localhost:8080
+
 springdoc:
   default-produces-media-type: application/json
   override-with-generic-response: false

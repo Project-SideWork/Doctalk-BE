@@ -1,5 +1,6 @@
 package com.capstone.global.jwt;
 
+import com.capstone.global.security.CustomUserDetails;
 import com.capstone.global.security.SecurityConstants;
 import io.jsonwebtoken.ExpiredJwtException;
 import jakarta.servlet.FilterChain;
@@ -10,20 +11,16 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.util.AntPathMatcher;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
-import java.util.List;
 
 @RequiredArgsConstructor
 @Slf4j
 public class JwtFilter extends OncePerRequestFilter {
     private final JwtUtil jwtUtil;
-    private final UserDetailsService userDetailsService;
     private final AntPathMatcher pathMatcher = new AntPathMatcher();
 
 
@@ -37,6 +34,7 @@ public class JwtFilter extends OncePerRequestFilter {
         String accessToken = CookieUtil.getAccessTokenFromRequest(request);
 
         if (isAllowedPath(requestUri)) {
+            log.info("ALLOWED PATH ENTERED");
             filterChain.doFilter(request, response);
             return;
         }
@@ -60,8 +58,12 @@ public class JwtFilter extends OncePerRequestFilter {
                 return;
             }
 
+            Long growpUserId = jwtUtil.getUserId(accessToken);
             String email = jwtUtil.getEmail(accessToken);
-            UserDetails userDetails = userDetailsService.loadUserByUsername(email);
+            log.info("email: " + email);
+
+            CustomUserDetails userDetails = new CustomUserDetails(growpUserId, email);
+
 
             UsernamePasswordAuthenticationToken authentication =
                     new UsernamePasswordAuthenticationToken(
@@ -69,6 +71,7 @@ public class JwtFilter extends OncePerRequestFilter {
                             null,
                             userDetails.getAuthorities()
                     );
+            log.info("authentication: " + authentication.getPrincipal());
             authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
             SecurityContextHolder.getContext().setAuthentication(authentication);
 
@@ -86,7 +89,8 @@ public class JwtFilter extends OncePerRequestFilter {
     }
 
     private boolean isAllowedPath(String uri) {
+        String strippedUri = uri.startsWith("/api") ? uri.substring(4) : uri;
         return SecurityConstants.PUBLIC_PATHS.stream()
-                .anyMatch(pattern -> pathMatcher.match(pattern, uri));
+                .anyMatch(pattern -> pathMatcher.match(pattern, strippedUri));
     }
 }

@@ -26,7 +26,7 @@ public class CustomPendingUserRepositoryImpl implements CustomPendingUserReposit
     }
 
     @Override
-    public Optional<PendingUser> findByProjectAndUser(String projectId, String userId) {
+    public Optional<PendingUser> findByProjectAndUser(String projectId, Long userId) {
         Query query = new Query().addCriteria(Criteria.where("projectId").is(projectId)
                 .and("userId").is(userId));
 

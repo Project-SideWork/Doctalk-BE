@@ -28,7 +28,6 @@ import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
 import static com.capstone.domain.AI.message.AIMessages.AI_LIMIT_EXCEEDED;
-import static com.capstone.domain.user.message.UserMessages.USER_NOT_FOUND;
 
 @Service
 @RequiredArgsConstructor
@@ -84,7 +83,7 @@ public class AIService
     public String correctGrammar(AIRequest aiRequest, CustomUserDetails userDetails)
     {
 
-        String userEmail= userDetails.getEmail();
+        String userEmail= userDetails.email();
         checkUserMembership(userEmail);
 
         String request= aiRequest.getRequest();
@@ -96,7 +95,7 @@ public class AIService
 
     public String sumUpDocument(AIRequest aiRequest,CustomUserDetails userDetails)
     {
-        String userEmail= userDetails.getEmail();
+        String userEmail= userDetails.email();
         checkUserMembership(userEmail);
 
         String request= aiRequest.getRequest();
@@ -108,7 +107,7 @@ public class AIService
 
     public String reviseSummary(AIReviseRequest aiReviseRequest, CustomUserDetails userDetails)
     {
-        String userEmail= userDetails.getEmail();
+        String userEmail= userDetails.email();
         checkUserMembership(userEmail);
         String originalSummary=aiReviseRequest.getRequest();
         String feedback =aiReviseRequest.getReviseRequest();

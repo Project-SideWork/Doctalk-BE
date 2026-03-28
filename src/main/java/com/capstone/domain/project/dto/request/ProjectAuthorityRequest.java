@@ -10,6 +10,6 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 public class ProjectAuthorityRequest {
-    private String userEmail;
+    private Long userId;
     private String role;
 }

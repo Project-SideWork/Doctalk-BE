@@ -12,5 +12,5 @@ import java.util.Optional;
 public interface ProjectUserRepository extends MongoRepository<ProjectUser, String>, CustomProjectUserRepository {
     List<ProjectUser> findByProjectId(String projectId);
     List<ProjectUser> findByUserId(String email);
-    Optional<ProjectUser> findByProjectIdAndUserId(String projectId, String userId);
+    Optional<ProjectUser> findByProjectIdAndUserId(String projectId, Long userId);
 }

@@ -151,6 +151,10 @@ springdoc:
   default-produces-media-type: application/json
   override-with-generic-response: false
 
+auth:
+  service:
+    url: http://${INTERNAL_IP}:8080
+
 management:
   endpoints:
     web:
