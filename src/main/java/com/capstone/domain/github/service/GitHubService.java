@@ -115,12 +115,8 @@ public class GitHubService {
 //    }
 
     public List<GitHubOrgDto> fetchMyGithubOrganizations(Long growpUserId) {
-        log.info("fetchMyGithubOrganizations called with " + growpUserId);
-
         String url = String.format("%s/user/orgs", apiUrl);
-        githubTokenManager.ensureValidToken(growpUserId);
         String token = githubTokenManager.getToken(growpUserId);
-        log.info("getToken called with " + token);
 
         ResponseEntity<GitHubOrgDto[]> response = restTemplate.exchange(
                 url,
@@ -143,7 +139,6 @@ public class GitHubService {
 
     public GithubIssueResponse fetchGithubIssuesByProject(Long growpUserId, String teamId) {
         Project project = projectRepository.findById(teamId).orElseThrow();
-        String token = githubTokenManager.getToken(growpUserId);
 
         List<GitHubIssueDto> all = new ArrayList<>();
 
@@ -256,14 +251,16 @@ public class GitHubService {
 
     public GithubPrResponse fetchReviewRequestPullRequestsInProject(Long growpUserId, String projectId) {
         Project project = projectRepository.findById(projectId).orElseThrow();
-        String token = githubTokenManager.getToken(growpUserId);
-
         List<GitHubPullRequestDto> all = new ArrayList<>();
+
+        String token = githubTokenManager.getToken(growpUserId);
+        String loginName = githubTokenManager.getLoginName(growpUserId);
+
 
         for (ProjectOrganization org : Optional.ofNullable(project.getProjectOrganizations()).orElse(Collections.emptyList())) {
             String organization = org.getOrgName();
             for (String repoName : org.getOrgRepos()) {
-                all.addAll(fetchReviewRequestedPullRequests(token, organization, repoName, "kamillcream"));
+                all.addAll(fetchReviewRequestedPullRequests(token, organization, repoName, loginName));
             }
         }
 
