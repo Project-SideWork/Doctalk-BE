@@ -25,7 +25,7 @@ public interface GithubControllerDocs {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "조회 성공"),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "인증 실패")
     })
-    ResponseEntity<ApiResponse<List<GitHubOrgDto>>> getMyGithubOrganizations(@AuthenticationPrincipal CustomUserDetails customUserDetails);
+    ResponseEntity<ApiResponse<List<GitHubOrgDto>>> getMyGithubOrganizations();
 
     @Operation(description = "조직 내 신규 레포지토리 생성")
     @ApiResponses({
@@ -35,7 +35,6 @@ public interface GithubControllerDocs {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "403", description = "권한 부족")
     })
     ResponseEntity<ApiResponse<Void>> createNewRepositoryInOrganization(
-            @AuthenticationPrincipal CustomUserDetails userDetails,
             @RequestBody OrgRepoRequest request
     );
 
@@ -45,7 +44,6 @@ public interface GithubControllerDocs {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "프로젝트 또는 레포지토리 없음")
     })
     ResponseEntity<ApiResponse<GithubIssueResponse>> getProjectGithubIssues(
-            @AuthenticationPrincipal CustomUserDetails customUserDetails,
             @PathVariable String projectId
     );
     
@@ -54,7 +52,6 @@ public interface GithubControllerDocs {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "조회 성공")
     })
     ResponseEntity<ApiResponse<List<GitHubPullRequestDto>>> getRepositoryPullRequests(
-            @AuthenticationPrincipal CustomUserDetails customUserDetails,
             @RequestParam String org,
             @RequestParam String repo
     );
@@ -75,7 +72,6 @@ public interface GithubControllerDocs {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "조회 성공")
     })
     ResponseEntity<ApiResponse<GitHubOrgEventResponse>> getProjectGithubEvents(
-            @AuthenticationPrincipal CustomUserDetails customUserDetails,
             @PathVariable String projectId
     );
     
@@ -95,7 +91,6 @@ public interface GithubControllerDocs {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "조회 성공")
     })
     ResponseEntity<ApiResponse<List<ReviewCommentResponse>>> getRepositoryReviewComments(
-            @AuthenticationPrincipal CustomUserDetails customUserDetails,
             @RequestParam String org,
             @RequestParam String repo
     );
@@ -105,7 +100,6 @@ public interface GithubControllerDocs {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "조회 성공")
     })
     ResponseEntity<ApiResponse<ReviewStatsResponse>> getRepositoryReviewStats(
-            @AuthenticationPrincipal CustomUserDetails customUserDetails,
             @RequestParam String org,
             @RequestParam String repo,
             @RequestParam(defaultValue = "10") int prCount

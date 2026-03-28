@@ -111,8 +111,8 @@ public class ProjectController implements ProjectControllerDocs {
     public ResponseEntity<ApiResponse<Void>> deleteProjectUser(
             @AuthenticationPrincipal CustomUserDetails customUserDetails,
             @PathVariable String projectId,
-            @PathVariable Long userId){
-        projectUserService.deleteProjectUser(projectId, userId);
+            @PathVariable String email){
+        projectUserService.deleteProjectUser(customUserDetails, projectId, email);
         return ResponseEntity.ok(ApiResponse.onSuccess());
     }
 

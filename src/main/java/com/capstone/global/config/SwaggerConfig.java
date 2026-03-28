@@ -48,8 +48,8 @@ public class SwaggerConfig {
     private Info apiInfo() {
         return new Info()
                 .title("Doctalk API 명세서")
-                .description("최근 업데이트 : 2026.03.26 16:35 <br>" +
-                        "<b>/{projectId}/user/{email} 의 RequestParam 변경: email -> userId<b>"+
+                .description("최근 업데이트 : 2025.04.15 16:35 <br>" +
+                        "<b>task/post의 Request Body Schema 확인 할 것<b>"+
                         "<ul><br>" +
                         "  <li>PENDING: 진행 전</li><br>" +
                         "  <li>PROGRESS: 진행 중</li><br>" +

@@ -346,7 +346,7 @@ public interface ProjectControllerDocs {
     ResponseEntity<com.capstone.global.response.ApiResponse<List<ProjectResponse>>> loadProjectList(@AuthenticationPrincipal CustomUserDetails userDetails);
 
 
-    @Operation(description = "✅ MANAGER 권한이 있는 프로젝트 유저가 다른 프로젝트 유저 강퇴하기")
+    @Operation(description = "MANAGER 권한이 있는 프로젝트 유저가 다른 프로젝트 유저 강퇴하기")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "강퇴 성공"),
             @ApiResponse(
@@ -388,5 +388,6 @@ public interface ProjectControllerDocs {
     ResponseEntity<com.capstone.global.response.ApiResponse<Void>> deleteProjectUser(
             @AuthenticationPrincipal CustomUserDetails customUserDetails,
             @PathVariable String projectId,
-            @PathVariable Long userId);
+            @PathVariable String email);
+
 }

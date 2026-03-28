@@ -26,6 +26,7 @@ import com.capstone.global.response.status.ErrorStatus;
 import com.capstone.global.security.CustomUserDetails;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.bson.types.ObjectId;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -51,7 +52,7 @@ public class ProjectUserService {
 
         Optional<User> user = userRepository.findUserByEmail(projectInviteRequest.email());
         if(user.isPresent()){
-            Long userId = user.get().getId();
+            String userId = user.get().getId();
 
             Optional<PendingUser> pendingUserExists = pendingUserRepository.findByProjectAndUser(projectId, userId);
             if(pendingUserExists.isPresent()){
@@ -106,7 +107,7 @@ public class ProjectUserService {
 
     public void updateProjectUserAuthorities(String projectId, ProjectAuthorityRequest request) {
 
-        ProjectUser projectUser = projectUserRepository.findByProjectIdAndUserId(projectId, request.getUserId()).orElseThrow();
+        ProjectUser projectUser = projectUserRepository.findByProjectIdAndUserId(projectId, request.getUserEmail()).orElseThrow();
         System.out.println(projectUser.getRole());
         String newRole = request.getRole();
 
@@ -123,7 +124,7 @@ public class ProjectUserService {
 
         Project project = findProjectByProjectIdOrThrow(projectId);
         updateProjectUserAuthorities(projectId, projectAuthority);
-        kafkaProducerService.sendEvent(KafkaEventTopic.PROJECT_AUTHENTICATED, ProjectAuthPayload.from(projectAuthority.getUserId(), customUserDetails.email(), project, projectAuthority.getRole()));
+        kafkaProducerService.sendEvent(KafkaEventTopic.PROJECT_AUTHENTICATED, ProjectAuthPayload.from(projectAuthority.getUserEmail(), project, projectAuthority.getRole()));
         return project;
     }
 
@@ -133,13 +134,14 @@ public class ProjectUserService {
     }
 
     @Transactional
-    public void deleteProjectUser(String projectId, Long userId)
+    public void deleteProjectUser(CustomUserDetails customUserDetails, String projectId,String email)
     {
-        ProjectUser manager = projectUserRepository.findByProjectIdAndUserId(projectId, userId)
+        String managerEmail = customUserDetails.getEmail();
+        ProjectUser manager = projectUserRepository.findByProjectIdAndUserId(projectId, managerEmail)
                 .orElseThrow(() -> new GlobalException(ErrorStatus.PROJECT_NOT_FOUND));
         if(manager.getRole().equals("ROLE_MANAGER"))
         {
-            ProjectUser projectUser = projectUserRepository.findByProjectIdAndUserId(projectId, userId)
+            ProjectUser projectUser = projectUserRepository.findByProjectIdAndUserId(projectId, email)
                     .orElseThrow(() -> new GlobalException(ErrorStatus.PROJECT_NOT_FOUND));
 
             projectUserRepository.delete(projectUser);

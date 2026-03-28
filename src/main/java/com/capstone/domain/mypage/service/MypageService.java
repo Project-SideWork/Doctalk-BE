@@ -28,11 +28,14 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import static com.capstone.domain.mypage.message.MypageMessages.PASSWORD_MISMATCH;
 import static com.capstone.domain.user.message.UserMessages.USER_FOUND;
+import static com.capstone.domain.user.message.UserMessages.USER_NOT_FOUND;
 
 
 @Slf4j
@@ -49,7 +52,7 @@ public class MypageService {
     public UserDto.UserInfoDto getUser(CustomUserDetails userDetails)
     {
 
-        String email=userDetails.email();
+        String email=userDetails.getEmail();
         Optional<User> user = userRepository.findUserByEmail(email);
         if(user.isEmpty()) {
             throw new UserNotFoundException();
@@ -89,7 +92,7 @@ public class MypageService {
 
     public String modifyProfile(CustomUserDetails userDetails, UserDto.UserProfileDto userProfileDto)
     {
-        String email=userDetails.email();
+        String email=userDetails.getEmail();
         Optional<User> user=userRepository.findUserByEmail(email);
         if(user.isEmpty())
         {
@@ -103,7 +106,7 @@ public class MypageService {
 
     @Transactional
     public String modifyEmail(CustomUserDetails userDetails, UserDto.UserEmailDto userEmailDto) throws Exception {
-        String email=userDetails.email();
+        String email=userDetails.getEmail();
         Optional<User> user = userRepository.findUserByEmail(email);
         if(user.isEmpty()) {
             throw new UserNotFoundException();
@@ -163,7 +166,7 @@ public class MypageService {
     @Transactional
     public String removeUser(CustomUserDetails userDetails)
     {
-        String email= userDetails.email();
+        String email= userDetails.getEmail();
         Optional<User> user = userRepository.findUserByEmail(email);
 
         if(user.isEmpty())
@@ -215,7 +218,7 @@ public class MypageService {
 
     public List<CalendarTaskDto> getUserTask(CustomUserDetails userDetails)
     {
-        String email=userDetails.email();
+        String email=userDetails.getEmail();
         Optional<User> user=userRepository.findUserByEmail(email);
         if(user.isEmpty())
         {

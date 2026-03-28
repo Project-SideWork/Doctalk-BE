@@ -22,6 +22,7 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -119,11 +120,11 @@ public class DocumentService {
         redisTemplate.delete(key);
         documentRepository.delete(document);
         kafkaProducerService.sendEvent(KafkaEventTopic.DOCUMENT_DELETED, DocumentChangePayload.from(document
-                , null, null, customUserDetails.email(), document.getEditors()));
+                , null, null, customUserDetails.getEmail(), document.getEditors()));
     }
 
     public void createDocument(CustomUserDetails customUserDetails, DocumentCreateRequest documentCreateRequest){
-        String editorId = customUserDetails.email();
+        String editorId = customUserDetails.getEmail();
         documentRepository.save(documentCreateRequest.to(editorId));
     }
 

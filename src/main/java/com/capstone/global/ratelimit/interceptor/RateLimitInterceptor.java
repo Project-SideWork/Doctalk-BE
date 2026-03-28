@@ -119,7 +119,7 @@ public class RateLimitInterceptor implements HandlerInterceptor {
         Object principal = authentication.getPrincipal();
 
         if (principal instanceof CustomUserDetails customUserDetails) {
-            return customUserDetails.email();
+            return customUserDetails.getEmail();
         }
         return null;
     }

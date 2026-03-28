@@ -1,7 +1,6 @@
 package com.capstone.domain.project.service;
 
 import com.capstone.domain.file.service.FileService;
-import com.capstone.domain.github.util.GithubInformationManager;
 import com.capstone.domain.project.dto.request.ProjectUpdateRequest;
 import com.capstone.domain.project.dto.response.ProjectContributionResult;
 import com.capstone.domain.project.dto.response.ProjectCoworkerDto;
@@ -48,7 +47,6 @@ public class ProjectService {
     private final KafkaProducerService kafkaProducerService;
     private final ProjectUserRepository projectUserRepository;
     private final FileService fileService;
-    private final GithubInformationManager githubInformationManager;
 
 
     @Transactional
@@ -61,7 +59,7 @@ public class ProjectService {
 
         Project project = projectRepository.save(Project.create(projectSaveRequest.projectName()
                 , projectSaveRequest.description(), projectOrganizations));
-        saveProjectUsers(projectSaveRequest, project, customUserDetails.email());
+        saveProjectUsers(projectSaveRequest, project, customUserDetails.getEmail());
         return project;
     }
 
@@ -98,7 +96,7 @@ public class ProjectService {
         if (projectSaveRequest.invitedEmails() != null) {
             userService.participateProcess(projectSaveRequest.invitedEmails(), project.getId());
         }
-        kafkaProducerService.sendEvent(KafkaEventTopic.PROJECT_CREATED, ProjectChangePayload.from(project, null, null, customUserDetails.email(), projectSaveRequest.invitedEmails()));
+        kafkaProducerService.sendEvent(KafkaEventTopic.PROJECT_CREATED, ProjectChangePayload.from(project, null, null, customUserDetails.getEmail(), projectSaveRequest.invitedEmails()));
         return project;
     }
 
@@ -125,7 +123,7 @@ public class ProjectService {
 
         List<String> coworkers = projectUserRepository.findUserIdByProjectId(project.getId());
 
-        kafkaProducerService.sendEvent(KafkaEventTopic.PROJECT_UPDATED, ProjectChangePayload.from(project, beforeUpdate, afterUpdate, customUserDetails.email(), coworkers));
+        kafkaProducerService.sendEvent(KafkaEventTopic.PROJECT_UPDATED, ProjectChangePayload.from(project, beforeUpdate, afterUpdate, customUserDetails.getEmail(), coworkers));
 
         projectRepository.save(project);
         return project;
@@ -138,7 +136,7 @@ public class ProjectService {
 
 
     public List<ProjectResponse> getProjectList(CustomUserDetails customUserDetails) {
-        List<String> projectIds = parseProjectIds(projectUserRepository.findByUserId(customUserDetails.email()));
+        List<String> projectIds = parseProjectIds(projectUserRepository.findByUserId(customUserDetails.getEmail()));
         List<Project> projects = projectRepository.findAllById(projectIds);
 
         if (projects.isEmpty()) {
@@ -227,11 +225,10 @@ public class ProjectService {
     }
 
     public ProjectContributionResult queryProjectContribution(String projectId, CustomUserDetails customUserDetails){
-        Long githubId = githubInformationManager.getGithubId(customUserDetails.userId());
-        double issueContribution = projectRepository.rateMyIssueRatio(projectId, githubId);
-        double prContribution = projectRepository.rateMyPRRatio(projectId, githubId);
-        double reviewContribution = projectRepository.rateMyReviewRatio(projectId, githubId);
-        double deadlineOnTimeRatio = taskRepository.rateDueDateCompletion(projectId, customUserDetails.email());
+        double issueContribution = projectRepository.rateMyIssueRatio(projectId, customUserDetails.getGithubId());
+        double prContribution = projectRepository.rateMyPRRatio(projectId, customUserDetails.getGithubId());
+        double reviewContribution = projectRepository.rateMyReviewRatio(projectId, customUserDetails.getGithubId());
+        double deadlineOnTimeRatio = taskRepository.rateDueDateCompletion(projectId, customUserDetails.getEmail());
 
         return new ProjectContributionResult(
                 issueContribution, prContribution, reviewContribution, deadlineOnTimeRatio

@@ -104,7 +104,6 @@ jobs:
                   KAFKA_HOST=${{ secrets.KAFKA_HOST }}
                   PAT_TOKEN=${{ secrets.PAT_TOKEN }}
                   JWT_SECRET=${{ secrets.JWT_SECRET }}
-                  INTERNAL_IP=${{ secrets.INTERNAL_IP }}
                   EOF
                   
                   scp myapp.tar .env.production app:/home/ubuntu/app/

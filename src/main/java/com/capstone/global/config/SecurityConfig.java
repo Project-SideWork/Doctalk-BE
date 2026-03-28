@@ -4,7 +4,9 @@ import com.capstone.domain.oauth2.HttpCookieOAuth2AuthorizationRequestRepository
 import com.capstone.domain.oauth2.handler.OAuth2AuthenticationFailureHandler;
 import com.capstone.domain.oauth2.handler.OAuth2AuthenticationSuccessHandler;
 import com.capstone.domain.oauth2.service.CustomOAuth2UserService;
+import com.capstone.domain.user.repository.UserRepository;
 import com.capstone.global.jwt.*;
+import com.capstone.global.ratelimit.filter.RateLimitFilter;
 import com.capstone.global.security.SecurityConstants;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -20,6 +22,7 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
@@ -42,6 +45,7 @@ public class SecurityConfig {
 	private final HttpCookieOAuth2AuthorizationRequestRepository httpCookieOAuth2AuthorizationRequestRepository;
 
 	private final JwtUtil jwtUtil;
+	private final UserDetailsService userDetailsService;
 
 	@Bean
 	public AuthenticationManager authenticationManager(AuthenticationConfiguration configuration) throws Exception {
@@ -89,7 +93,7 @@ public class SecurityConfig {
 					.failureHandler(oAuth2AuthenticationFailureHandler)
 			);
 		http
-			.addFilterBefore(new JwtFilter(jwtUtil), UsernamePasswordAuthenticationFilter.class)
+			.addFilterBefore(new JwtFilter(jwtUtil, userDetailsService), UsernamePasswordAuthenticationFilter.class)
 			// .addFilterAfter(rateLimitFilter, JwtFilter.class)
 			.addFilterBefore(new CustomLogoutFilter(jwtUtil), LogoutFilter.class);
 

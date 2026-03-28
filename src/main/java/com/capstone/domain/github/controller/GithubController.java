@@ -26,17 +26,13 @@ public class GithubController implements GithubControllerDocs {
     private final GithubCommandService githubCommandService;
 
     @GetMapping("/organizations/my")
-    public ResponseEntity<ApiResponse<List<GitHubOrgDto>>> getMyGithubOrganizations(
-            @AuthenticationPrincipal CustomUserDetails customUserDetails
-    ){
-        return ResponseEntity.ok(ApiResponse.onSuccess(gitHubService.fetchMyGithubOrganizations(customUserDetails.userId())));
+    public ResponseEntity<ApiResponse<List<GitHubOrgDto>>> getMyGithubOrganizations(){
+        return ResponseEntity.ok(ApiResponse.onSuccess(gitHubService.fetchMyGithubOrganizations()));
     }
 
     @PostMapping("/organizations/repository")
-    public ResponseEntity<ApiResponse<Void>> createNewRepositoryInOrganization(
-            @AuthenticationPrincipal CustomUserDetails userDetails,
-            @RequestBody OrgRepoRequest request){
-        gitHubService.createOrganizationRepositoryOnGithub(userDetails.userId(), request);
+    public ResponseEntity<ApiResponse<Void>> createNewRepositoryInOrganization(@RequestBody OrgRepoRequest request){
+        gitHubService.createOrganizationRepositoryOnGithub(request);
         return ResponseEntity.ok(ApiResponse.onSuccessVoid());
     }
 
@@ -86,10 +82,8 @@ public class GithubController implements GithubControllerDocs {
      * @return
      */
     @GetMapping("/issues/{projectId}")
-    public ResponseEntity<ApiResponse<GithubIssueResponse>> getProjectGithubIssues(
-            @AuthenticationPrincipal CustomUserDetails customUserDetails,
-            @PathVariable String projectId) {
-        return ResponseEntity.ok(ApiResponse.onSuccess(gitHubService.fetchGithubIssuesByProject(customUserDetails.userId(), projectId)));
+    public ResponseEntity<ApiResponse<GithubIssueResponse>> getProjectGithubIssues(@PathVariable String projectId) {
+        return ResponseEntity.ok(ApiResponse.onSuccess(gitHubService.fetchGithubIssuesByProject(projectId)));
     }
 
     /**
@@ -100,11 +94,10 @@ public class GithubController implements GithubControllerDocs {
      */
     @GetMapping("/prs")
     public ResponseEntity<ApiResponse<List<GitHubPullRequestDto>>> getRepositoryPullRequests(
-            @AuthenticationPrincipal CustomUserDetails customUserDetails,
             @RequestParam String org,
             @RequestParam String repo
     ) {
-        return ResponseEntity.ok(ApiResponse.onSuccess(gitHubService.fetchPullRequestsFromRepository(customUserDetails.userId(), org, repo)));
+        return ResponseEntity.ok(ApiResponse.onSuccess(gitHubService.fetchPullRequestsFromRepository(org, repo)));
     }
 
     /**
@@ -116,7 +109,7 @@ public class GithubController implements GithubControllerDocs {
     @GetMapping("/prs/requested/{projectId}")
     public ResponseEntity<ApiResponse<GithubPrResponse>> getReviewRequestedProjectPullRequests(
             @AuthenticationPrincipal CustomUserDetails userDetails,  @PathVariable String projectId) {
-        return ResponseEntity.ok(ApiResponse.onSuccess(gitHubService.fetchReviewRequestPullRequestsInProject(userDetails.userId(), projectId)));
+        return ResponseEntity.ok(ApiResponse.onSuccess(gitHubService.fetchReviewRequestPullRequestsInProject(userDetails, projectId)));
     }
 
     /**
@@ -125,10 +118,8 @@ public class GithubController implements GithubControllerDocs {
      * @return
      */
     @GetMapping("/event/{projectId}")
-    public ResponseEntity<ApiResponse<GitHubOrgEventResponse>> getProjectGithubEvents(
-            @AuthenticationPrincipal CustomUserDetails customUserDetails,
-            @PathVariable String projectId) {
-        return ResponseEntity.ok(ApiResponse.onSuccess(gitHubService.fetchGithubEventsByProject(customUserDetails.userId(), projectId)));
+    public ResponseEntity<ApiResponse<GitHubOrgEventResponse>> getProjectGithubEvents(@PathVariable String projectId) {
+        return ResponseEntity.ok(ApiResponse.onSuccess(gitHubService.fetchGithubEventsByProject(projectId)));
     }
 
 
@@ -142,7 +133,7 @@ public class GithubController implements GithubControllerDocs {
     public ResponseEntity<ApiResponse<List<ContributionMetricWithShareDto>>> getMyProjectGithubStats(
             @AuthenticationPrincipal CustomUserDetails customUserDetails,
             @PathVariable String projectId) {
-        return ResponseEntity.ok(ApiResponse.onSuccess(gitHubService.aggregateMyGithubStatsByProject(customUserDetails.userId(), projectId, "kamillcream")));
+        return ResponseEntity.ok(ApiResponse.onSuccess(gitHubService.aggregateMyGithubStatsByProject(projectId, "kamillcream")));
     }
 
 
@@ -154,11 +145,10 @@ public class GithubController implements GithubControllerDocs {
      */
     @GetMapping("/repo/reviews/comments")
     public ResponseEntity<ApiResponse<List<ReviewCommentResponse>>> getRepositoryReviewComments(
-            @AuthenticationPrincipal CustomUserDetails customUserDetails,
             @RequestParam String org,
             @RequestParam String repo
     ) {
-        return ResponseEntity.ok(ApiResponse.onSuccess(gitHubService.fetchReviewCommentsFromRepository(customUserDetails.userId(), org, repo)));
+        return ResponseEntity.ok(ApiResponse.onSuccess(gitHubService.fetchReviewCommentsFromRepository(org, repo)));
     }
 
     /**
@@ -170,12 +160,11 @@ public class GithubController implements GithubControllerDocs {
      */
     @GetMapping("/repo/stats")
     public ResponseEntity<ApiResponse<ReviewStatsResponse>> getRepositoryReviewStats(
-            @AuthenticationPrincipal CustomUserDetails customUserDetails,
             @RequestParam String org,
             @RequestParam String repo,
             @RequestParam(defaultValue = "10") int prCount
     ) {
-        return ResponseEntity.ok(ApiResponse.onSuccess(gitHubService.getRepositoryReviewStats(customUserDetails.userId(), org, repo, prCount)));
+        return ResponseEntity.ok(ApiResponse.onSuccess(gitHubService.getRepositoryReviewStats(org, repo, prCount)));
     }
 
     @PostMapping("/webhook")

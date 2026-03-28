@@ -18,6 +18,8 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.Optional;
 
+import static com.capstone.domain.user.message.UserMessages.USER_NOT_FOUND;
+
 @Service
 @RequiredArgsConstructor
 @Transactional
@@ -29,7 +31,7 @@ public class PaymentService {
 
     public PaymentEntity processPayment(CustomUserDetails userDetails, String impUid)
     {
-        String email =userDetails.email();
+        String email =userDetails.getEmail();
         Optional<User> user = userRepository.findUserByEmail(email);
         if(user.isEmpty())
         {

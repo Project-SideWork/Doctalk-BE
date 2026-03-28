@@ -56,7 +56,7 @@ public class TaskService {
         );
         Task saved = taskRepository.save(taskDto.toTask());
         projectRepository.addTaskIdAtomically(project.getId(), saved.getId());
-        kafkaProducerService.sendEvent(KafkaEventTopic.TASK_CREATED,TaskChangePayload.from(saved, null, null, userDetails.email(), taskDto.editors()));
+        kafkaProducerService.sendEvent(KafkaEventTopic.TASK_CREATED,TaskChangePayload.from(saved, null, null, userDetails.getEmail(), taskDto.editors()));
 
         return saved;
     }
@@ -83,7 +83,7 @@ public class TaskService {
 
         taskRepository.save(task);
 
-        kafkaProducerService.sendEvent(KafkaEventTopic.TASK_CREATED, TaskChangePayload.from(task, beforeChange, afterChange, customUserDetails.email(), taskDto.editors()));
+        kafkaProducerService.sendEvent(KafkaEventTopic.TASK_CREATED, TaskChangePayload.from(task, beforeChange, afterChange, customUserDetails.getEmail(), taskDto.editors()));
         return TaskVersionResponse.from(version, taskDto.taskId(),task.getTitle(),task.getDeadline(),task.getEditors());
 
     }
@@ -98,7 +98,7 @@ public class TaskService {
         Task task = findTaskByIdOrThrow(id);
         taskRepository.delete(task);
 
-        kafkaProducerService.sendEvent(KafkaEventTopic.TASK_DELETED,TaskChangePayload.from(task, null, null, userDetails.email(), task.getEditors()));
+        kafkaProducerService.sendEvent(KafkaEventTopic.TASK_DELETED,TaskChangePayload.from(task, null, null, userDetails.getEmail(), task.getEditors()));
 
         return task;
     }
@@ -114,7 +114,7 @@ public class TaskService {
         taskRepository.save(task);
         TaskChangeDetail afterChange = TaskChangeDetail.from(task);
 
-        kafkaProducerService.sendEvent(KafkaEventTopic.TASK_UPDATED,TaskChangePayload.from(task, beforeChange, afterChange, userDetails.email(), task.getEditors()));
+        kafkaProducerService.sendEvent(KafkaEventTopic.TASK_UPDATED,TaskChangePayload.from(task, beforeChange, afterChange, userDetails.getEmail(), task.getEditors()));
 
         return task;
     }
@@ -152,7 +152,7 @@ public class TaskService {
 
     public List<Task> listByDeadLine(CustomUserDetails customUserDetails)
     {
-        String email = customUserDetails.email();
+        String email = customUserDetails.getEmail();
         List<Task>taskList=taskRepository.findByUserEmailAndSortDeadLine(email);
         return taskList;
 
